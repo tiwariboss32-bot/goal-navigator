@@ -213,7 +213,7 @@ const Dashboard = () => {
               {analytics && <AnalyticsSection analytics={analytics} />}
 
               {/* Goals header */}
-              <div className="mb-4 flex items-center justify-between">
+              <div id="goals" className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Your Goals ({goals.length})
                 </h2>
