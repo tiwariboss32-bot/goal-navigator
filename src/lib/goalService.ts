@@ -109,6 +109,8 @@ export type GoalDetail = {
   status: string;
   resources: string[] | null;
   created_at: string;
+  is_public?: boolean;
+  share_slug?: string | null;
   tasks: {
     id: string;
     title: string;
@@ -178,6 +180,66 @@ export async function updateGoalStatus(goalId: string, status: string) {
     .update({ status })
     .eq("id", goalId);
   if (error) throw new Error(error.message);
+}
+
+// --- Sharing ---
+
+function generateSlug(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let slug = "";
+  for (let i = 0; i < 8; i++) slug += chars[Math.floor(Math.random() * chars.length)];
+  return slug;
+}
+
+export async function toggleGoalSharing(goalId: string, makePublic: boolean): Promise<string | null> {
+  if (makePublic) {
+    const slug = generateSlug();
+    const { error } = await supabase
+      .from("goals")
+      .update({ is_public: true, share_slug: slug } as any)
+      .eq("id", goalId);
+    if (error) throw new Error(error.message);
+    return slug;
+  } else {
+    const { error } = await supabase
+      .from("goals")
+      .update({ is_public: false, share_slug: null } as any)
+      .eq("id", goalId);
+    if (error) throw new Error(error.message);
+    return null;
+  }
+}
+
+export async function fetchPublicGoal(slug: string): Promise<GoalDetail> {
+  const { data: goal, error } = await (supabase
+    .from("goals")
+    .select("*") as any)
+    .eq("share_slug", slug)
+    .eq("is_public", true)
+    .single();
+
+  if (error || !goal) throw new Error("Goal not found or not shared");
+
+  const [{ data: tasks }, { data: milestones }] = await Promise.all([
+    supabase
+      .from("goal_tasks")
+      .select("*")
+      .eq("goal_id", goal.id)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("goal_milestones")
+      .select("*")
+      .eq("goal_id", goal.id)
+      .order("sort_order", { ascending: true }),
+  ]);
+
+  return {
+    ...goal,
+    is_public: true,
+    share_slug: slug,
+    tasks: tasks || [],
+    milestones: milestones || [],
+  };
 }
 
 export type DashboardAnalytics = {

@@ -1,32 +1,17 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft,
   Zap,
   Clock,
   Flag,
   BookOpen,
   CheckCircle2,
   Circle,
-  Trophy,
-  StickyNote,
-  Share2,
-  Link2,
-  Globe,
-  Lock,
+  ExternalLink,
 } from "lucide-react";
-import {
-  fetchGoalDetail,
-  toggleTaskComplete,
-  toggleMilestoneComplete,
-  updateGoalStatus,
-  toggleGoalSharing,
-  GoalDetail,
-} from "@/lib/goalService";
-import { toast } from "sonner";
+import { fetchPublicGoal, GoalDetail } from "@/lib/goalService";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
@@ -34,107 +19,19 @@ const priorityColors: Record<string, string> = {
   low: "text-muted-foreground",
 };
 
-const GoalDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+const SharedGoalPage = () => {
+  const { slug } = useParams<{ slug: string }>();
   const [goal, setGoal] = useState<GoalDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notes, setNotes] = useState("");
-
-  const load = useCallback(async () => {
-    if (!id) return;
-    try {
-      const data = await fetchGoalDetail(id);
-      setGoal(data);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    load();
-  }, [load]);
-
-  const handleToggleTask = async (taskId: string, current: boolean) => {
-    if (!goal) return;
-    // Optimistic update
-    setGoal((prev) =>
-      prev
-        ? {
-            ...prev,
-            tasks: prev.tasks.map((t) =>
-              t.id === taskId ? { ...t, completed: !current } : t
-            ),
-          }
-        : prev
-    );
-    try {
-      await toggleTaskComplete(taskId, !current);
-    } catch (e: any) {
-      toast.error(e.message);
-      load(); // revert
-    }
-  };
-
-  const handleToggleMilestone = async (msId: string, current: boolean) => {
-    if (!goal) return;
-    setGoal((prev) =>
-      prev
-        ? {
-            ...prev,
-            milestones: prev.milestones.map((m) =>
-              m.id === msId ? { ...m, completed: !current } : m
-            ),
-          }
-        : prev
-    );
-    try {
-      await toggleMilestoneComplete(msId, !current);
-    } catch (e: any) {
-      toast.error(e.message);
-      load();
-    }
-  };
-
-  const handleMarkComplete = async () => {
-    if (!goal) return;
-    const newStatus = goal.status === "completed" ? "active" : "completed";
-    try {
-      await updateGoalStatus(goal.id, newStatus);
-      setGoal((prev) => (prev ? { ...prev, status: newStatus } : prev));
-      toast.success(newStatus === "completed" ? "Goal completed! 🎉" : "Goal reopened");
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const handleToggleShare = async () => {
-    if (!goal) return;
-    const makePublic = !goal.is_public;
-    try {
-      const slug = await toggleGoalSharing(goal.id, makePublic);
-      setGoal((prev) =>
-        prev ? { ...prev, is_public: makePublic, share_slug: slug } : prev
-      );
-      if (makePublic && slug) {
-        const url = `${window.location.origin}/shared/${slug}`;
-        await navigator.clipboard.writeText(url);
-        toast.success("Link copied! Your goal is now public.");
-      } else {
-        toast.success("Goal is now private.");
-      }
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const copyShareLink = async () => {
-    if (!goal?.share_slug) return;
-    const url = `${window.location.origin}/shared/${goal.share_slug}`;
-    await navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard!");
-  };
+    if (!slug) return;
+    fetchPublicGoal(slug)
+      .then(setGoal)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   if (loading) {
     return (
@@ -144,13 +41,15 @@ const GoalDetailPage = () => {
     );
   }
 
-  if (!goal) {
+  if (error || !goal) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <p className="mb-4 text-muted-foreground">Goal not found.</p>
+          <p className="mb-4 text-muted-foreground">
+            {error || "This goal is not publicly shared."}
+          </p>
           <Button variant="hero" asChild>
-            <Link to="/dashboard">Back to Dashboard</Link>
+            <Link to="/">Go Home</Link>
           </Button>
         </div>
       </div>
@@ -166,31 +65,18 @@ const GoalDetailPage = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/dashboard"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
-                <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-              <span className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-[200px]">
-                {goal.title}
-              </span>
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
+              <Zap className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
+            <span className="text-sm font-semibold text-foreground truncate max-w-[200px] sm:max-w-none">
+              {goal.title}
+            </span>
           </div>
-          <Button
-            variant={goal.status === "completed" ? "outline" : "hero"}
-            size="sm"
-            className="gap-1.5 flex-shrink-0 text-xs sm:text-sm sm:gap-2"
-            onClick={handleMarkComplete}
-          >
-            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">{goal.status === "completed" ? "Reopen" : "Mark Complete"}</span>
-            <span className="sm:hidden">{goal.status === "completed" ? "Reopen" : "Complete"}</span>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" asChild>
+            <Link to="/">
+              <ExternalLink className="h-3 w-3" /> GoalBuilder AI
+            </Link>
           </Button>
         </div>
       </header>
@@ -222,7 +108,6 @@ const GoalDetailPage = () => {
               </span>
             </div>
 
-            {/* Meta */}
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               {goal.timeline && (
                 <span className="flex items-center gap-1.5">
@@ -263,18 +148,17 @@ const GoalDetailPage = () => {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className={`group flex items-start gap-3 rounded-xl border p-4 transition-all cursor-pointer ${
+                  className={`flex items-start gap-3 rounded-xl border p-4 ${
                     task.completed
                       ? "border-primary/20 bg-primary/5"
-                      : "border-border bg-card hover:border-primary/20"
+                      : "border-border bg-card"
                   }`}
-                  onClick={() => handleToggleTask(task.id, task.completed)}
                 >
                   <div className="mt-0.5 flex-shrink-0">
                     {task.completed ? (
                       <CheckCircle2 className="h-5 w-5 text-primary" />
                     ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
+                      <Circle className="h-5 w-5 text-muted-foreground/40" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -316,12 +200,11 @@ const GoalDetailPage = () => {
                 {goal.milestones.map((ms) => (
                   <div
                     key={ms.id}
-                    className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+                    className={`flex items-center gap-3 rounded-xl border p-4 ${
                       ms.completed
                         ? "border-primary/20 bg-primary/5"
-                        : "border-border bg-card hover:border-primary/20"
+                        : "border-border bg-card"
                     }`}
-                    onClick={() => handleToggleMilestone(ms.id, ms.completed)}
                   >
                     {ms.completed ? (
                       <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
@@ -365,69 +248,19 @@ const GoalDetailPage = () => {
             </section>
           )}
 
-          {/* Share */}
-          <section>
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              <Share2 className="h-4 w-4" /> Share
-            </h2>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  {goal.is_public ? (
-                    <Globe className="h-4 w-4 text-primary flex-shrink-0" />
-                  ) : (
-                    <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      {goal.is_public ? "Public link enabled" : "Private goal"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {goal.is_public
-                        ? "Anyone with the link can view progress"
-                        : "Only you can see this goal"}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant={goal.is_public ? "outline" : "hero"}
-                  size="sm"
-                  className="flex-shrink-0 gap-1.5 text-xs"
-                  onClick={handleToggleShare}
-                >
-                  {goal.is_public ? "Make Private" : "Share"}
-                </Button>
-              </div>
-              {goal.is_public && goal.share_slug && (
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex-1 truncate rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground font-mono">
-                    {window.location.origin}/shared/{goal.share_slug}
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-shrink-0" onClick={copyShareLink}>
-                    <Link2 className="h-3 w-3" /> Copy
-                  </Button>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Notes */}
-          <section>
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              <StickyNote className="h-4 w-4" /> Notes
-            </h2>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add personal notes about this goal..."
-              rows={4}
-              className="resize-none"
-            />
-          </section>
+          {/* Footer */}
+          <div className="border-t border-border pt-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              Built with{" "}
+              <Link to="/" className="text-primary hover:underline">
+                GoalBuilder AI
+              </Link>
+            </p>
+          </div>
         </motion.div>
       </main>
     </div>
   );
 };
 
-export default GoalDetailPage;
+export default SharedGoalPage;
