@@ -48,12 +48,15 @@ const HeroSection = () => {
             using intelligent AI guidance. Plan smarter, execute faster.
           </p>
 
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button variant="hero" size="lg" className="gap-2 px-8 text-base" asChild>
               <Link to="/auth">Start Planning <ArrowRight className="h-4 w-4" /></Link>
             </Button>
-            <Button variant="heroOutline" size="lg" className="px-8 text-base">
-              Try Demo
+            <Button variant="heroOutline" size="lg" className="gap-2 px-8 text-base" asChild>
+              <Link to="/auth">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Early Access — Try Now for Free
+              </Link>
             </Button>
           </div>
         </motion.div>
@@ -66,7 +69,15 @@ const HeroSection = () => {
           className="mx-auto mt-20 max-w-4xl"
         >
           <div className="rounded-xl border border-border bg-gradient-card p-1 shadow-card">
-            <div className="rounded-lg bg-card p-6">
+            <div className="relative rounded-lg bg-card p-6 overflow-hidden">
+              {/* Grid overlay */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.06]"
+                style={{
+                  backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
+                  backgroundSize: "40px 40px",
+                }}
+              />
               {/* Mock header */}
               <div className="mb-4 flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-destructive/60" />
