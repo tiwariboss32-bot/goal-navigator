@@ -58,6 +58,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/shared/:slug" element={<SharedGoalPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

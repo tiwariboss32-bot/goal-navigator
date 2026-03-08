@@ -365,6 +365,52 @@ const GoalDetailPage = () => {
             </section>
           )}
 
+          {/* Share */}
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <Share2 className="h-4 w-4" /> Share
+            </h2>
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  {goal.is_public ? (
+                    <Globe className="h-4 w-4 text-primary flex-shrink-0" />
+                  ) : (
+                    <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {goal.is_public ? "Public link enabled" : "Private goal"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {goal.is_public
+                        ? "Anyone with the link can view progress"
+                        : "Only you can see this goal"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant={goal.is_public ? "outline" : "hero"}
+                  size="sm"
+                  className="flex-shrink-0 gap-1.5 text-xs"
+                  onClick={handleToggleShare}
+                >
+                  {goal.is_public ? "Make Private" : "Share"}
+                </Button>
+              </div>
+              {goal.is_public && goal.share_slug && (
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="flex-1 truncate rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground font-mono">
+                    {window.location.origin}/shared/{goal.share_slug}
+                  </div>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-shrink-0" onClick={copyShareLink}>
+                    <Link2 className="h-3 w-3" /> Copy
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+
           {/* Notes */}
           <section>
             <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
