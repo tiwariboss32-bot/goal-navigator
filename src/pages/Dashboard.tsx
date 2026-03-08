@@ -21,7 +21,8 @@ const Dashboard = () => {
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
     { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
-    { icon: Shield, label: "Admin Settings", active: false, href: "/admin" },
+    { icon: Settings, label: "Settings", active: false, href: "/settings" },
+    { icon: Shield, label: "Admin", active: false, href: "/admin" },
   ];
 
   useEffect(() => {
