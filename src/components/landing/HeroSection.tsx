@@ -48,12 +48,15 @@ const HeroSection = () => {
             using intelligent AI guidance. Plan smarter, execute faster.
           </p>
 
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button variant="hero" size="lg" className="gap-2 px-8 text-base" asChild>
               <Link to="/auth">Start Planning <ArrowRight className="h-4 w-4" /></Link>
             </Button>
-            <Button variant="heroOutline" size="lg" className="px-8 text-base">
-              Try Demo
+            <Button variant="heroOutline" size="lg" className="gap-2 px-8 text-base" asChild>
+              <Link to="/auth">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Early Access — Try Now for Free
+              </Link>
             </Button>
           </div>
         </motion.div>
