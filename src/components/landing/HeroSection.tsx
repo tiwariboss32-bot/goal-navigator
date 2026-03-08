@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
@@ -48,8 +49,8 @@ const HeroSection = () => {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <Button variant="hero" size="lg" className="gap-2 px-8 text-base">
-              Start Planning <ArrowRight className="h-4 w-4" />
+            <Button variant="hero" size="lg" className="gap-2 px-8 text-base" asChild>
+              <Link to="/auth">Start Planning <ArrowRight className="h-4 w-4" /></Link>
             </Button>
             <Button variant="heroOutline" size="lg" className="px-8 text-base">
               Try Demo
