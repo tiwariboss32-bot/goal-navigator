@@ -1,16 +1,20 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, Save, Check } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import PlanPreview from "@/components/chat/PlanPreview";
 import { ChatMessage, GoalPlan, extractPlan } from "@/lib/goalPlan";
 import { streamGoalChat } from "@/lib/streamChat";
+import { saveGoalPlan } from "@/lib/goalService";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const GoalChat = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -21,6 +25,8 @@ const GoalChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [plan, setPlan] = useState<GoalPlan | null>(null);
   const [showPreview, setShowPreview] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const handleSend = useCallback(
     async (input: string) => {
@@ -28,13 +34,13 @@ const GoalChat = () => {
       const updatedMessages = [...messages, userMsg];
       setMessages(updatedMessages);
       setIsLoading(true);
+      setSaved(false);
 
       let assistantSoFar = "";
 
       const upsertAssistant = (chunk: string) => {
         assistantSoFar += chunk;
 
-        // Check for plan in the streaming content
         const foundPlan = extractPlan(assistantSoFar);
         if (foundPlan) {
           setPlan(foundPlan);
@@ -67,6 +73,22 @@ const GoalChat = () => {
     [messages, showPreview]
   );
 
+  const handleSavePlan = async () => {
+    if (!plan || !user) return;
+    setSaving(true);
+    try {
+      await saveGoalPlan(plan, user.id);
+      setSaved(true);
+      toast.success("Plan saved! Redirecting to dashboard...");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Failed to save plan");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Chat panel */}
@@ -87,18 +109,37 @@ const GoalChat = () => {
               <span className="text-sm font-semibold text-foreground">Goal Planning</span>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowPreview(!showPreview)}
-            className="h-8 w-8 md:flex hidden"
-          >
-            {showPreview ? (
-              <PanelRightClose className="h-4 w-4" />
-            ) : (
-              <PanelRightOpen className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            {plan && (
+              <Button
+                variant="hero"
+                size="sm"
+                className="gap-2"
+                onClick={handleSavePlan}
+                disabled={saving || saved}
+              >
+                {saved ? (
+                  <><Check className="h-4 w-4" /> Saved</>
+                ) : saving ? (
+                  "Saving..."
+                ) : (
+                  <><Save className="h-4 w-4" /> Save Plan</>
+                )}
+              </Button>
             )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPreview(!showPreview)}
+              className="h-8 w-8 md:flex hidden"
+            >
+              {showPreview ? (
+                <PanelRightClose className="h-4 w-4" />
+              ) : (
+                <PanelRightOpen className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </header>
 
         <ChatMessages messages={messages} isLoading={isLoading} />
@@ -115,8 +156,19 @@ const GoalChat = () => {
           className="hidden md:flex flex-col border-l border-border bg-card overflow-hidden"
           style={{ width: 400 }}
         >
-          <div className="flex h-14 items-center border-b border-border px-6">
+          <div className="flex h-14 items-center justify-between border-b border-border px-6">
             <span className="text-sm font-semibold text-foreground">Live Plan</span>
+            {plan && (
+              <Button
+                variant="hero"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={handleSavePlan}
+                disabled={saving || saved}
+              >
+                {saved ? <><Check className="h-3 w-3" /> Saved</> : saving ? "Saving..." : <><Save className="h-3 w-3" /> Save</>}
+              </Button>
+            )}
           </div>
           <PlanPreview plan={plan} />
         </motion.aside>
