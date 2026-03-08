@@ -136,7 +136,13 @@ const Dashboard = () => {
                     <Link
                       key={item.label}
                       to={item.href}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={(e) => {
+                        if ((item as any).onClick) {
+                          e.preventDefault();
+                          (item as any).onClick();
+                        }
+                        setMobileOpen(false);
+                      }}
                       className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                         item.active
                           ? "bg-primary/10 text-primary font-medium"
