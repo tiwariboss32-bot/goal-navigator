@@ -40,6 +40,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/goal/finalize"
+              element={
+                <ProtectedRoute>
+                  <GoalFinalize />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
