@@ -31,7 +31,7 @@ const Dashboard = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
-    { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
+    { icon: Target, label: "My Goals", active: false, href: "#goals", isAnchor: true },
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
     { icon: Shield, label: "Admin", active: false, href: "/admin" },
