@@ -13,40 +13,57 @@ interface Plan {
   sort_order: number;
 }
 
+const defaultPlans: Plan[] = [
+  { id: "default-1", name: "Starter", price_cents: 900, goal_limit: 1, sort_order: 0 },
+  { id: "default-2", name: "Pro", price_cents: 9900, goal_limit: 3, sort_order: 1 },
+];
+
 const PricingSection = () => {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [visible, setVisible] = useState(false);
+  const [plans, setPlans] = useState<Plan[]>(defaultPlans);
+  const [enabled, setEnabled] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const { data: config } = await (supabase
-        .from("app_config" as any)
-        .select("value") as any)
-        .eq("key", "pricing_enabled")
-        .single();
+      try {
+        const { data: config } = await (supabase
+          .from("app_config" as any)
+          .select("value") as any)
+          .eq("key", "pricing_enabled")
+          .single();
 
-      if (config?.value !== "true") return;
+        const isEnabled = config?.value === "true";
+        setEnabled(isEnabled);
 
-      const { data } = await supabase
-        .from("pricing_plans")
-        .select("*")
-        .eq("is_active", true)
-        .order("sort_order");
+        const { data } = await supabase
+          .from("pricing_plans")
+          .select("*")
+          .eq("is_active", true)
+          .order("sort_order");
 
-      if (data && data.length > 0) {
-        setPlans(data as Plan[]);
-        setVisible(true);
+        if (data && data.length > 0) {
+          setPlans(data as Plan[]);
+        }
+      } catch {
+        // keep defaults
+      } finally {
+        setLoaded(true);
       }
     };
     load();
   }, []);
 
-  if (!visible) return null;
+  if (!loaded) return null;
 
   const popular = plans.length > 1 ? plans[plans.length - 1].id : null;
 
   return (
-    <section id="pricing" className="border-t border-border bg-background py-28">
+    <section
+      id="pricing"
+      className={`border-t border-border bg-background py-28 transition-opacity duration-500 ${
+        enabled ? "opacity-100" : "opacity-40 pointer-events-none select-none"
+      }`}
+    >
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -64,6 +81,11 @@ const PricingSection = () => {
           <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
             Pay only for what you need. Each plan gives you AI-powered goal planning with actionable tasks.
           </p>
+          {!enabled && (
+            <p className="mx-auto mt-2 text-sm text-muted-foreground/70">
+              Pricing coming soon
+            </p>
+          )}
         </motion.div>
 
         <div className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-6 sm:flex-row">
