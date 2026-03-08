@@ -24,7 +24,10 @@ import { getTierByKey, PLAN_TIERS } from "@/lib/subscriptionPlans";
 import PaywallDialog from "@/components/PaywallDialog";
 
 const UserSettings = () => {
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
+  const currentPlan = getTierByKey(subscription.tier);
+  const isTopTier = subscription.tier === "power";
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
