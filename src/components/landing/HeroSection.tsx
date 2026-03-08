@@ -71,8 +71,10 @@ const HeroSection = () => {
           <div className="rounded-xl border border-border bg-gradient-card p-1 shadow-card">
             <div className="relative rounded-lg bg-card p-6 overflow-hidden">
               {/* Grid overlay */}
-              <div
+              <motion.div
                 className="pointer-events-none absolute inset-0 opacity-[0.06]"
+                animate={{ backgroundPosition: ["0px 0px", "40px 40px"] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                 style={{
                   backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
                   backgroundSize: "40px 40px",
