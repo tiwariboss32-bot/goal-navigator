@@ -32,10 +32,9 @@ const Dashboard = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
-    
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
-    { icon: Shield, label: "Admin", active: false, href: "/admin" },
+    ...(isAdmin ? [{ icon: Shield, label: "Admin", active: false, href: "/admin" }] : []),
   ];
 
   useEffect(() => {
@@ -43,6 +42,7 @@ const Dashboard = () => {
     Promise.all([
       fetchUserGoals(user.id),
       fetchDashboardAnalytics(user.id),
+      isUserAdmin(user.id).then(setIsAdmin),
     ])
       .then(([g, a]) => {
         setGoals(g);
