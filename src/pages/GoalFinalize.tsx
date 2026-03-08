@@ -440,6 +440,13 @@ const GoalFinalize = () => {
           </div>
         </motion.div>
       </main>
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        plans={paywall.plans}
+        goalCount={paywall.goalCount}
+        goalsAllowed={paywall.goalsAllowed}
+      />
     </div>
   );
 };
