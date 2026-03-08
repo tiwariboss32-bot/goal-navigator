@@ -143,7 +143,7 @@ const Dashboard = () => {
             <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
           </div>
           <div className="ml-auto">
-            <Button variant="hero" size="sm" className="gap-1.5 text-xs" onClick={() => navigate("/goal/new")}>
+            <Button variant="hero" size="sm" className="gap-1.5 text-xs" onClick={handleCreateGoal}>
               <Plus className="h-3.5 w-3.5" /> New
             </Button>
           </div>
