@@ -211,11 +211,11 @@ export async function toggleGoalSharing(goalId: string, makePublic: boolean): Pr
 }
 
 export async function fetchPublicGoal(slug: string): Promise<GoalDetail> {
-  const { data: goal, error } = await supabase
+  const { data: goal, error } = await (supabase
     .from("goals")
-    .select("*")
-    .eq("share_slug" as any, slug)
-    .eq("is_public" as any, true)
+    .select("*") as any)
+    .eq("share_slug", slug)
+    .eq("is_public", true)
     .single();
 
   if (error || !goal) throw new Error("Goal not found or not shared");
