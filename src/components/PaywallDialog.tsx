@@ -6,8 +6,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Lock, Zap } from "lucide-react";
+import { Lock, Zap, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Plan {
   id: string;
@@ -25,6 +27,26 @@ interface Props {
 }
 
 const PaywallDialog = ({ open, onOpenChange, plans, goalCount, goalsAllowed }: Props) => {
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleBuy = async (planId: string) => {
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { planId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to start checkout");
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -55,8 +77,18 @@ const PaywallDialog = ({ open, onOpenChange, plans, goalCount, goalsAllowed }: P
                 <span className="text-lg font-bold text-foreground">
                   ${(plan.price_cents / 100).toFixed(0)}
                 </span>
-                <Button size="sm" variant="hero" className="gap-1.5">
-                  <Zap className="h-3.5 w-3.5" />
+                <Button
+                  size="sm"
+                  variant="hero"
+                  className="gap-1.5"
+                  disabled={loadingPlan !== null}
+                  onClick={() => handleBuy(plan.id)}
+                >
+                  {loadingPlan === plan.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Zap className="h-3.5 w-3.5" />
+                  )}
                   Buy
                 </Button>
               </div>
@@ -65,7 +97,7 @@ const PaywallDialog = ({ open, onOpenChange, plans, goalCount, goalsAllowed }: P
         </div>
 
         <p className="mt-3 text-center text-[10px] text-muted-foreground">
-          Payment processing will be available once the admin configures a payment provider.
+          Secure payment powered by Stripe
         </p>
       </DialogContent>
     </Dialog>

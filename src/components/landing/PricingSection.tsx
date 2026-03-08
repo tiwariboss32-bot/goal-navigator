@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Plan {
   id: string;
@@ -19,9 +21,35 @@ const defaultPlans: Plan[] = [
 ];
 
 const PricingSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[]>(defaultPlans);
   const [enabled, setEnabled] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleGetStarted = async (planId: string) => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { planId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to start checkout");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -150,12 +178,15 @@ const PricingSection = () => {
                 <Button
                   variant={isPopular ? "hero" : "heroOutline"}
                   className="w-full gap-2"
-                  asChild
+                  disabled={loadingPlan !== null}
+                  onClick={() => handleGetStarted(plan.id)}
                 >
-                  <Link to="/auth">
+                  {loadingPlan === plan.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
                     <Zap className="h-4 w-4" />
-                    Get Started
-                  </Link>
+                  )}
+                  Get Started
                 </Button>
               </motion.div>
             );
