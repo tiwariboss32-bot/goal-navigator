@@ -18,6 +18,16 @@ const Dashboard = () => {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const paywall = usePaywall();
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  const handleCreateGoal = () => {
+    if (paywall.pricingEnabled && !paywall.canCreateGoal) {
+      setPaywallOpen(true);
+      return;
+    }
+    navigate("/goal/new");
+  };
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
