@@ -25,6 +25,12 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-3">
+          <a
+            href="#pricing"
+            className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+          >
+            Pricing
+          </a>
           {user ? (
             <Button variant="hero" size="sm" asChild>
               <Link to="/dashboard">Dashboard</Link>
