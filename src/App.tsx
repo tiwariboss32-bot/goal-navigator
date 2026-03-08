@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import GoalChat from "./pages/GoalChat";
 import GoalFinalize from "./pages/GoalFinalize";
 import GoalDetailPage from "./pages/GoalDetailPage";
+import SharedGoalPage from "./pages/SharedGoalPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
