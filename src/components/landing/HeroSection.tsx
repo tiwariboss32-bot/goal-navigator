@@ -69,7 +69,15 @@ const HeroSection = () => {
           className="mx-auto mt-20 max-w-4xl"
         >
           <div className="rounded-xl border border-border bg-gradient-card p-1 shadow-card">
-            <div className="rounded-lg bg-card p-6">
+            <div className="relative rounded-lg bg-card p-6 overflow-hidden">
+              {/* Grid overlay */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.06]"
+                style={{
+                  backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
+                  backgroundSize: "40px 40px",
+                }}
+              />
               {/* Mock header */}
               <div className="mb-4 flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-destructive/60" />
