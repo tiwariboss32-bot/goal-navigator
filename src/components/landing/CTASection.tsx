@@ -25,8 +25,8 @@ const CTASection = () => {
           <p className="relative mb-8 text-muted-foreground">
             Join thousands of people who use GoalBuilder AI to turn their ambitions into reality.
           </p>
-          <Button variant="hero" size="lg" className="relative gap-2 px-10 text-base">
-            Create Your First Plan <ArrowRight className="h-4 w-4" />
+          <Button variant="hero" size="lg" className="relative gap-2 px-10 text-base" asChild>
+            <Link to="/auth">Create Your First Plan <ArrowRight className="h-4 w-4" /></Link>
           </Button>
         </motion.div>
       </div>
