@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Zap,
@@ -15,8 +16,12 @@ import {
   Save,
   Mail,
   Calendar,
+  CreditCard,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getTierByKey, PLAN_TIERS } from "@/lib/subscriptionPlans";
+import PaywallDialog from "@/components/PaywallDialog";
 
 const UserSettings = () => {
   const { user } = useAuth();
