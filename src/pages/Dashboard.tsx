@@ -241,6 +241,7 @@ const Dashboard = () => {
             </>
           )}
         </motion.div>
+        </div>
       </main>
     </div>
   );
