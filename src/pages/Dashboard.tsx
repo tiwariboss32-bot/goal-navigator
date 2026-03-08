@@ -2,10 +2,11 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -20,13 +21,14 @@ const Dashboard = () => {
 
         <nav className="flex-1 space-y-1 p-4">
           {[
-            { icon: LayoutDashboard, label: "Dashboard", active: true },
-            { icon: Target, label: "My Goals", active: false },
-            { icon: Plus, label: "Create Goal", active: false },
-            { icon: Settings, label: "Settings", active: false },
+            { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
+            { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
+            { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
+            { icon: Settings, label: "Settings", active: false, href: "/dashboard" },
           ].map((item) => (
-            <button
+            <Link
               key={item.label}
+              to={item.href}
               className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                 item.active
                   ? "bg-primary/10 text-primary font-medium"
@@ -35,7 +37,7 @@ const Dashboard = () => {
             >
               <item.icon className="h-4 w-4" />
               {item.label}
-            </button>
+            </Link>
           ))}
         </nav>
 
@@ -64,7 +66,7 @@ const Dashboard = () => {
                 Welcome back, {user?.email}
               </p>
             </div>
-            <Button variant="hero" size="sm" className="gap-2">
+            <Button variant="hero" size="sm" className="gap-2" onClick={() => navigate("/goal/new")}>
               <Plus className="h-4 w-4" /> New Plan
             </Button>
           </div>
@@ -80,7 +82,7 @@ const Dashboard = () => {
             <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
               Create your first goal and let AI help you build an actionable plan to achieve it.
             </p>
-            <Button variant="hero" className="gap-2">
+            <Button variant="hero" className="gap-2" onClick={() => navigate("/goal/new")}>
               <Plus className="h-4 w-4" /> Create Your First Plan
             </Button>
           </div>
