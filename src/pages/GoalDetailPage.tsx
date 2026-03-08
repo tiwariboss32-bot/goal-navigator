@@ -153,11 +153,12 @@ const GoalDetailPage = () => {
           <Button
             variant={goal.status === "completed" ? "outline" : "hero"}
             size="sm"
-            className="gap-2"
+            className="gap-1.5 flex-shrink-0 text-xs sm:text-sm sm:gap-2"
             onClick={handleMarkComplete}
           >
-            <Trophy className="h-4 w-4" />
-            {goal.status === "completed" ? "Reopen" : "Mark Complete"}
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{goal.status === "completed" ? "Reopen" : "Mark Complete"}</span>
+            <span className="sm:hidden">{goal.status === "completed" ? "Reopen" : "Complete"}</span>
           </Button>
         </div>
       </header>
