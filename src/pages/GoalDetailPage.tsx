@@ -109,6 +109,33 @@ const GoalDetailPage = () => {
     }
   };
 
+  const handleToggleShare = async () => {
+    if (!goal) return;
+    const makePublic = !goal.is_public;
+    try {
+      const slug = await toggleGoalSharing(goal.id, makePublic);
+      setGoal((prev) =>
+        prev ? { ...prev, is_public: makePublic, share_slug: slug } : prev
+      );
+      if (makePublic && slug) {
+        const url = `${window.location.origin}/shared/${slug}`;
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied! Your goal is now public.");
+      } else {
+        toast.success("Goal is now private.");
+      }
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!goal?.share_slug) return;
+    const url = `${window.location.origin}/shared/${goal.share_slug}`;
+    await navigator.clipboard.writeText(url);
+    toast.success("Link copied to clipboard!");
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
