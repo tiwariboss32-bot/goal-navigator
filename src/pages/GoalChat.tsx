@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, ArrowRight } from "lucide-react";
+import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, ArrowRight, Bot } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ChatMessages from "@/components/chat/ChatMessages";
@@ -8,6 +8,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import PlanPreview from "@/components/chat/PlanPreview";
 import { ChatMessage, GoalPlan, extractPlan } from "@/lib/goalPlan";
 import { streamGoalChat } from "@/lib/streamChat";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const GoalChat = () => {
