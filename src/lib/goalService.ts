@@ -1,6 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import { GoalPlan } from "@/lib/goalPlan";
 
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .single();
+
+  if (error) return false;
+  return !!data;
+}
+
 export async function saveGoalPlan(plan: GoalPlan, userId: string): Promise<string> {
   // Insert goal
   const { data: goal, error: goalError } = await supabase
