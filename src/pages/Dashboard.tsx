@@ -4,19 +4,27 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchUserGoals, GoalWithTasks } from "@/lib/goalService";
+import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics } from "@/lib/goalService";
+import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
 import { toast } from "sonner";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [goals, setGoals] = useState<GoalWithTasks[]>([]);
+  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    fetchUserGoals(user.id)
-      .then(setGoals)
+    Promise.all([
+      fetchUserGoals(user.id),
+      fetchDashboardAnalytics(user.id),
+    ])
+      .then(([g, a]) => {
+        setGoals(g);
+        setAnalytics(a);
+      })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [user]);
@@ -105,61 +113,73 @@ const Dashboard = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {goals.map((goal, i) => {
-                const progress = getProgress(goal);
-                return (
-                  <motion.div
-                    key={goal.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="group rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-card cursor-pointer"
-                    onClick={() => navigate(`/goal/${goal.id}`)}
-                  >
-                    <div className="mb-3 flex items-start justify-between">
-                      <h3 className="text-base font-semibold text-foreground line-clamp-2">
-                        {goal.title}
-                      </h3>
-                      <span
-                        className={`ml-2 flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                          goal.status === "completed"
-                            ? "bg-primary/20 text-primary"
-                            : "bg-secondary text-secondary-foreground"
-                        }`}
-                      >
-                        {goal.status}
-                      </span>
-                    </div>
+            <>
+              {/* Analytics */}
+              {analytics && <AnalyticsSection analytics={analytics} />}
 
-                    {goal.description && (
-                      <p className="mb-3 text-xs text-muted-foreground line-clamp-2">
-                        {goal.description}
-                      </p>
-                    )}
+              {/* Goals header */}
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Your Goals ({goals.length})
+                </h2>
+              </div>
 
-                    <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground">
-                      {goal.timeline && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {goal.timeline}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {goals.map((goal, i) => {
+                  const progress = getProgress(goal);
+                  return (
+                    <motion.div
+                      key={goal.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="group rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-card cursor-pointer"
+                      onClick={() => navigate(`/goal/${goal.id}`)}
+                    >
+                      <div className="mb-3 flex items-start justify-between">
+                        <h3 className="text-base font-semibold text-foreground line-clamp-2">
+                          {goal.title}
+                        </h3>
+                        <span
+                          className={`ml-2 flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                            goal.status === "completed"
+                              ? "bg-primary/20 text-primary"
+                              : "bg-secondary text-secondary-foreground"
+                          }`}
+                        >
+                          {goal.status}
                         </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> {goal.completed_count}/{goal.task_count} tasks
-                      </span>
-                    </div>
+                      </div>
 
-                    {/* Progress bar */}
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-gradient-primary transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                      {goal.description && (
+                        <p className="mb-3 text-xs text-muted-foreground line-clamp-2">
+                          {goal.description}
+                        </p>
+                      )}
+
+                      <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground">
+                        {goal.timeline && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {goal.timeline}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> {goal.completed_count}/{goal.task_count} tasks
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-gradient-primary transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </motion.div>
       </main>

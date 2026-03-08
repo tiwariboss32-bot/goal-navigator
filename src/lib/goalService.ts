@@ -179,3 +179,71 @@ export async function updateGoalStatus(goalId: string, status: string) {
     .eq("id", goalId);
   if (error) throw new Error(error.message);
 }
+
+export type DashboardAnalytics = {
+  totalGoals: number;
+  completedGoals: number;
+  totalTasks: number;
+  completedTasks: number;
+  completionByDay: { date: string; completed: number }[];
+  streakDays: number;
+};
+
+export async function fetchDashboardAnalytics(userId: string): Promise<DashboardAnalytics> {
+  const [{ data: goals }, { data: tasks }] = await Promise.all([
+    supabase.from("goals").select("id, status, created_at").eq("user_id", userId),
+    supabase
+      .from("goal_tasks")
+      .select("id, completed, updated_at, created_at")
+      .eq("user_id", userId),
+  ]);
+
+  const allGoals = goals || [];
+  const allTasks = tasks || [];
+
+  const completedTasks = allTasks.filter((t) => t.completed);
+
+  // Build completion by day (last 14 days)
+  const now = new Date();
+  const dayMap: Record<string, number> = {};
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dayMap[d.toISOString().slice(0, 10)] = 0;
+  }
+
+  completedTasks.forEach((t) => {
+    const day = (t.updated_at || t.created_at).slice(0, 10);
+    if (day in dayMap) dayMap[day]++;
+  });
+
+  const completionByDay = Object.entries(dayMap).map(([date, completed]) => ({
+    date,
+    completed,
+  }));
+
+  // Calculate streak (consecutive days with at least 1 completion)
+  const completionDays = new Set(
+    completedTasks.map((t) => (t.updated_at || t.created_at).slice(0, 10))
+  );
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (completionDays.has(key)) {
+      streak++;
+    } else if (i > 0) {
+      break; // don't break on today if nothing done yet
+    }
+  }
+
+  return {
+    totalGoals: allGoals.length,
+    completedGoals: allGoals.filter((g) => g.status === "completed").length,
+    totalTasks: allTasks.length,
+    completedTasks: completedTasks.length,
+    completionByDay,
+    streakDays: streak,
+  };
+}
