@@ -23,6 +23,20 @@ const GoalChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [plan, setPlan] = useState<GoalPlan | null>(null);
   const [showPreview, setShowPreview] = useState(true);
+  const [modelName, setModelName] = useState("");
+
+  useEffect(() => {
+    (supabase.from("app_config" as any).select("key, value") as any)
+      .in("key", ["ai_model", "ai_provider"])
+      .then(({ data }: any) => {
+        const map: Record<string, string> = {};
+        (data || []).forEach((c: any) => { map[c.key] = c.value; });
+        const model = map["ai_model"] || "gemini-3-flash-preview";
+        // Show a friendly short name
+        const short = model.split("/").pop() || model;
+        setModelName(short);
+      });
+  }, []);
 
   const handleSend = useCallback(
     async (input: string) => {
