@@ -31,7 +31,7 @@ const Dashboard = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
-    { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
+    { icon: Target, label: "My Goals", active: false, href: "#goals", isAnchor: true },
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
     { icon: Shield, label: "Admin", active: false, href: "/admin" },
@@ -65,20 +65,31 @@ const Dashboard = () => {
           <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
         </div>
         <nav className="flex-1 space-y-1 p-4">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              to={item.href}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                item.active
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) =>
+            (item as any).isAnchor ? (
+              <a
+                key={item.label}
+                href={item.href}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-muted hover:text-foreground`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </a>
+            ) : (
+              <Link
+                key={item.label}
+                to={item.href}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                  item.active
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
         <div className="border-t border-border p-4">
           <button
@@ -109,21 +120,33 @@ const Dashboard = () => {
                 <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
               </div>
               <nav className="flex-1 space-y-1 p-4">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                      item.active
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                ))}
+                {navItems.map((item) =>
+                  (item as any).isAnchor ? (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-muted hover:text-foreground`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      to={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                        item.active
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  )
+                )}
               </nav>
               <div className="border-t border-border p-4">
                 <button
@@ -190,7 +213,7 @@ const Dashboard = () => {
               {analytics && <AnalyticsSection analytics={analytics} />}
 
               {/* Goals header */}
-              <div className="mb-4 flex items-center justify-between">
+              <div id="goals" className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Your Goals ({goals.length})
                 </h2>
