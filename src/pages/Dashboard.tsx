@@ -162,7 +162,7 @@ const Dashboard = () => {
                 Welcome back, {user?.email}
               </p>
             </div>
-            <Button variant="hero" size="sm" className="gap-2" onClick={() => navigate("/goal/new")}>
+            <Button variant="hero" size="sm" className="gap-2" onClick={handleCreateGoal}>
               <Plus className="h-4 w-4" /> New Plan
             </Button>
           </div>
