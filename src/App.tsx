@@ -63,6 +63,14 @@ const App = () => (
             />
             <Route path="/shared/:slug" element={<SharedGoalPage />} />
             <Route
+              path="/payment-success"
+              element={
+                <ProtectedRoute>
+                  <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin"
               element={
                 <ProtectedRoute>
