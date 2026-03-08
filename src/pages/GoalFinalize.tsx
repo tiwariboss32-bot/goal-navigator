@@ -19,6 +19,8 @@ import {
 import { GoalPlan } from "@/lib/goalPlan";
 import { saveGoalPlan } from "@/lib/goalService";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePaywall } from "@/hooks/usePaywall";
+import PaywallDialog from "@/components/PaywallDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
