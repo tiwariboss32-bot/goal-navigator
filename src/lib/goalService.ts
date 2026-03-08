@@ -109,6 +109,8 @@ export type GoalDetail = {
   status: string;
   resources: string[] | null;
   created_at: string;
+  is_public?: boolean;
+  share_slug?: string | null;
   tasks: {
     id: string;
     title: string;
