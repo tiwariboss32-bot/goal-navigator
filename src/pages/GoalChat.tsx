@@ -105,6 +105,11 @@ const GoalChat = () => {
                 <Zap className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               <span className="text-sm font-semibold text-foreground truncate">Goal Planning</span>
+              {modelName && (
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <Bot className="h-2.5 w-2.5" /> {modelName}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
