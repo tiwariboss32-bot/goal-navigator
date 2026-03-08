@@ -277,6 +277,73 @@ const UserSettings = () => {
             </div>
           </section>
 
+          {/* Subscription plan */}
+          <section className="space-y-4 rounded-xl border border-border bg-card p-5">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Crown className="h-4 w-4 text-primary" /> Subscription Plan
+            </h3>
+
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="text-xs capitalize font-semibold">
+                  {currentPlan.name}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {currentPlan.price === 0
+                    ? "Free forever"
+                    : `$${currentPlan.price}/month`}
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {currentPlan.goalLimit === -1
+                  ? "Unlimited goals"
+                  : `${currentPlan.goalLimit} goals/mo`}
+              </span>
+            </div>
+
+            {subscription.subscriptionEnd && (
+              <p className="text-xs text-muted-foreground">
+                Renews on{" "}
+                {new Date(subscription.subscriptionEnd).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              {subscription.subscribed && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={async () => {
+                    try {
+                      const { data, error } = await supabase.functions.invoke("customer-portal");
+                      if (error) throw error;
+                      if (data?.url) window.location.href = data.url;
+                    } catch (e: any) {
+                      toast.error(e.message || "Failed to open billing");
+                    }
+                  }}
+                >
+                  <CreditCard className="h-3.5 w-3.5" /> Manage Billing
+                </Button>
+              )}
+              <Button
+                variant="hero"
+                size="sm"
+                className="gap-1.5 text-xs"
+                disabled={isTopTier}
+                onClick={() => setPaywallOpen(true)}
+              >
+                <Zap className="h-3.5 w-3.5" />
+                {isTopTier ? "Max Plan" : "Upgrade"}
+              </Button>
+            </div>
+          </section>
+
           {/* Danger zone */}
           <section className="rounded-xl border border-destructive/20 bg-destructive/5 p-5">
             <h3 className="mb-2 text-sm font-semibold text-destructive">Account</h3>
