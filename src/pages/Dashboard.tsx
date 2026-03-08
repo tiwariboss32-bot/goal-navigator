@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
 import { toast } from "sonner";
+import { usePaywall } from "@/hooks/usePaywall";
+import PaywallDialog from "@/components/PaywallDialog";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
