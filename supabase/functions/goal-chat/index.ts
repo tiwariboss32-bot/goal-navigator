@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,22 +42,57 @@ IMPORTANT RULES:
 - After generating the plan, ask if they want to adjust anything
 - If they request changes, output an updated <plan> block`;
 
+const LOVABLE_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Load model config from database
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    const { data: configs } = await supabase
+      .from("app_config")
+      .select("key, value")
+      .in("key", ["ai_model", "ai_provider", "custom_api_key", "custom_endpoint"]);
+
+    const configMap: Record<string, string> = {};
+    (configs || []).forEach((c: any) => {
+      configMap[c.key] = c.value;
+    });
+
+    const provider = configMap["ai_provider"] || "lovable";
+    const model = configMap["ai_model"] || "google/gemini-3-flash-preview";
+    const customApiKey = configMap["custom_api_key"] || "";
+    const customEndpoint = configMap["custom_endpoint"] || "";
+
+    // Determine endpoint and auth
+    let apiUrl: string;
+    let authHeader: string;
+
+    if (provider === "custom" && customApiKey && customEndpoint) {
+      apiUrl = customEndpoint;
+      authHeader = `Bearer ${customApiKey}`;
+    } else {
+      // Default to Lovable AI
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+      apiUrl = LOVABLE_GATEWAY;
+      authHeader = `Bearer ${LOVABLE_API_KEY}`;
+    }
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: authHeader,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...messages,
@@ -77,7 +113,7 @@ serve(async (req) => {
         });
       }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
