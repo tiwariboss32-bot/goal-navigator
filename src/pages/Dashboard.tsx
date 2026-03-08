@@ -116,7 +116,7 @@ const Dashboard = () => {
               <CreditCard className="h-3.5 w-3.5" /> Manage Billing
             </button>
           )}
-          {!subscription.subscribed && subscription.tier === "free" && (
+          {!subscription.subscribed && subscription.tier === "free" && currentPlan.key !== "power" && (
             <Button variant="hero" size="sm" className="w-full text-xs gap-1.5" onClick={() => setPaywallOpen(true)}>
               <Zap className="h-3.5 w-3.5" /> Upgrade
             </Button>
