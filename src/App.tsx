@@ -12,6 +12,7 @@ import GoalFinalize from "./pages/GoalFinalize";
 import GoalDetailPage from "./pages/GoalDetailPage";
 import SharedGoalPage from "./pages/SharedGoalPage";
 import AdminSettings from "./pages/AdminSettings";
+import UserSettings from "./pages/UserSettings";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
