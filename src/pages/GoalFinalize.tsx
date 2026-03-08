@@ -137,6 +137,10 @@ const GoalFinalize = () => {
       toast.error("Please add at least one task");
       return;
     }
+    if (paywall.pricingEnabled && !paywall.canCreateGoal) {
+      setPaywallOpen(true);
+      return;
+    }
 
     setPublishing(true);
     try {
