@@ -74,6 +74,8 @@ const GoalFinalize = () => {
   const [resources, setResources] = useState<string[]>(initialPlan?.resources || []);
   const [newResource, setNewResource] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const paywall = usePaywall();
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   if (!initialPlan) {
     return (
