@@ -178,12 +178,15 @@ const PricingSection = () => {
                 <Button
                   variant={isPopular ? "hero" : "heroOutline"}
                   className="w-full gap-2"
-                  asChild
+                  disabled={loadingPlan !== null}
+                  onClick={() => handleGetStarted(plan.id)}
                 >
-                  <Link to="/auth">
+                  {loadingPlan === plan.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
                     <Zap className="h-4 w-4" />
-                    Get Started
-                  </Link>
+                  )}
+                  Get Started
                 </Button>
               </motion.div>
             );
