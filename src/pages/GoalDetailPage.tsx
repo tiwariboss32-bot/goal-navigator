@@ -145,7 +145,7 @@ const GoalDetailPage = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
                 <Zap className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
-              <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+              <span className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-[200px]">
                 {goal.title}
               </span>
             </div>
