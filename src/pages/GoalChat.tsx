@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, ArrowRight } from "lucide-react";
+import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, ArrowRight, Bot } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ChatMessages from "@/components/chat/ChatMessages";
@@ -8,6 +8,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import PlanPreview from "@/components/chat/PlanPreview";
 import { ChatMessage, GoalPlan, extractPlan } from "@/lib/goalPlan";
 import { streamGoalChat } from "@/lib/streamChat";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const GoalChat = () => {
@@ -22,6 +23,20 @@ const GoalChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [plan, setPlan] = useState<GoalPlan | null>(null);
   const [showPreview, setShowPreview] = useState(true);
+  const [modelName, setModelName] = useState("");
+
+  useEffect(() => {
+    (supabase.from("app_config" as any).select("key, value") as any)
+      .in("key", ["ai_model", "ai_provider"])
+      .then(({ data }: any) => {
+        const map: Record<string, string> = {};
+        (data || []).forEach((c: any) => { map[c.key] = c.value; });
+        const model = map["ai_model"] || "gemini-3-flash-preview";
+        // Show a friendly short name
+        const short = model.split("/").pop() || model;
+        setModelName(short);
+      });
+  }, []);
 
   const handleSend = useCallback(
     async (input: string) => {
@@ -90,6 +105,11 @@ const GoalChat = () => {
                 <Zap className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               <span className="text-sm font-semibold text-foreground truncate">Goal Planning</span>
+              {modelName && (
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <Bot className="h-2.5 w-2.5" /> {modelName}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">

@@ -11,6 +11,7 @@ import GoalChat from "./pages/GoalChat";
 import GoalFinalize from "./pages/GoalFinalize";
 import GoalDetailPage from "./pages/GoalDetailPage";
 import SharedGoalPage from "./pages/SharedGoalPage";
+import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -59,6 +60,14 @@ const App = () => (
               }
             />
             <Route path="/shared/:slug" element={<SharedGoalPage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminSettings />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

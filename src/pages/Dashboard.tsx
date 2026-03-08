@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu } from "lucide-react";
+import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
@@ -21,7 +21,7 @@ const Dashboard = () => {
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
     { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
-    { icon: Settings, label: "Settings", active: false, href: "/dashboard" },
+    { icon: Shield, label: "Admin Settings", active: false, href: "/admin" },
   ];
 
   useEffect(() => {
