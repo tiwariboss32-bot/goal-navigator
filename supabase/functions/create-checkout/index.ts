@@ -8,10 +8,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Map DB plan IDs to Stripe price IDs
+// Map plan names to Stripe price IDs
 const PLAN_PRICE_MAP: Record<string, string> = {
-  "3f2ca502-4e18-475d-b53d-50109843a1ae": "price_1T8lxAL1OYecixWrgk27VnxA", // Starter
-  "6d3000b9-2195-4bdd-8876-f46d63364e9e": "price_1T8lxrL1OYecixWrOyLFJNVT", // Pro
+  growth: "price_1T8mQeL1OYecixWrncb5IMb1",
+  pro: "price_1T8mRrL1OYecixWrMbIgs25d",
+  power: "price_1T8mSgL1OYecixWrUIaoOhdJ",
 };
 
 serve(async (req) => {
@@ -31,15 +32,14 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { planId } = await req.json();
-    const stripePriceId = PLAN_PRICE_MAP[planId];
+    const { planKey } = await req.json();
+    const stripePriceId = PLAN_PRICE_MAP[planKey];
     if (!stripePriceId) throw new Error("Invalid plan");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Find or reference existing Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
     if (customers.data.length > 0) {
@@ -50,12 +50,12 @@ serve(async (req) => {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: stripePriceId, quantity: 1 }],
-      mode: "payment",
+      mode: "subscription",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/dashboard`,
       metadata: {
         user_id: user.id,
-        plan_id: planId,
+        plan_key: planKey,
       },
     });
 
