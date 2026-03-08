@@ -87,7 +87,24 @@ serve(async (req) => {
     const subscription = subscriptions.data[0];
     const priceId = subscription.items.data[0].price.id;
     const tier = PRICE_TIER_MAP[priceId] || "free";
-    const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    
+    console.log("[check-subscription] Found subscription:", {
+      priceId,
+      tier,
+      current_period_end: subscription.current_period_end,
+    });
+
+    let subscriptionEnd: string | null = null;
+    try {
+      const endMs = typeof subscription.current_period_end === "number"
+        ? subscription.current_period_end * 1000
+        : Date.parse(subscription.current_period_end as unknown as string);
+      if (!isNaN(endMs)) {
+        subscriptionEnd = new Date(endMs).toISOString();
+      }
+    } catch {
+      // ignore date parse errors
+    }
 
     return json({ subscribed: true, tier, subscription_end: subscriptionEnd, is_admin: false });
   } catch (error) {
