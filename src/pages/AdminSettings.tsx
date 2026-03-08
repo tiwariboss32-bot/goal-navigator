@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   Zap,
@@ -24,6 +24,8 @@ import {
   EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
+import PricingConfigSection from "@/components/admin/PricingConfigSection";
+import PaymentConfigSection from "@/components/admin/PaymentConfigSection";
 
 const AVAILABLE_MODELS = [
   { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash Preview", provider: "lovable" },
@@ -40,26 +42,32 @@ const AVAILABLE_MODELS = [
 
 const AdminSettings = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Model config
   const [selectedModel, setSelectedModel] = useState("google/gemini-3-flash-preview");
-  const [provider, setProvider] = useState("lovable");
   const [customModelName, setCustomModelName] = useState("");
   const [customApiKey, setCustomApiKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
 
+  // Pricing config
+  const [pricingEnabled, setPricingEnabled] = useState(false);
+
+  // Payment config
+  const [paymentProvider, setPaymentProvider] = useState("");
+  const [paymentPublishableKey, setPaymentPublishableKey] = useState("");
+  const [paymentSecretKey, setPaymentSecretKey] = useState("");
+
   useEffect(() => {
     if (!user) return;
-    checkAdminAndLoadConfig();
+    loadConfig();
   }, [user]);
 
-  const checkAdminAndLoadConfig = async () => {
+  const loadConfig = async () => {
     try {
-      // Check admin role
       const { data: roles } = await (supabase
         .from("user_roles" as any)
         .select("role") as any)
@@ -68,36 +76,34 @@ const AdminSettings = () => {
 
       const admin = roles && roles.length > 0;
       setIsAdmin(admin);
+      if (!admin) { setLoading(false); return; }
 
-      if (!admin) {
-        setLoading(false);
-        return;
-      }
-
-      // Load current config
       const { data: configs } = await (supabase
         .from("app_config" as any)
         .select("key, value") as any);
 
-      const configMap: Record<string, string> = {};
-      (configs || []).forEach((c: any) => {
-        configMap[c.key] = c.value;
-      });
+      const map: Record<string, string> = {};
+      (configs || []).forEach((c: any) => { map[c.key] = c.value; });
 
-      const model = configMap["ai_model"] || "google/gemini-3-flash-preview";
-      const prov = configMap["ai_provider"] || "lovable";
-
+      // Model
+      const model = map["ai_model"] || "google/gemini-3-flash-preview";
+      const prov = map["ai_provider"] || "lovable";
       if (prov === "custom") {
         setSelectedModel("custom");
         setCustomModelName(model);
-        setProvider("custom");
       } else {
         setSelectedModel(model);
-        setProvider("lovable");
       }
+      setCustomApiKey(map["custom_api_key"] || "");
+      setCustomEndpoint(map["custom_endpoint"] || "");
 
-      setCustomApiKey(configMap["custom_api_key"] || "");
-      setCustomEndpoint(configMap["custom_endpoint"] || "");
+      // Pricing
+      setPricingEnabled(map["pricing_enabled"] === "true");
+
+      // Payment
+      setPaymentProvider(map["payment_provider"] || "");
+      setPaymentPublishableKey(map["payment_publishable_key"] || "");
+      setPaymentSecretKey(map["payment_secret_key"] || "");
     } catch (e: any) {
       console.error(e);
       toast.error("Failed to load settings");
@@ -110,14 +116,15 @@ const AdminSettings = () => {
     setSaving(true);
     try {
       const isCustom = selectedModel === "custom";
-      const modelValue = isCustom ? customModelName : selectedModel;
-      const providerValue = isCustom ? "custom" : "lovable";
-
       const updates = [
-        { key: "ai_model", value: modelValue },
-        { key: "ai_provider", value: providerValue },
+        { key: "ai_model", value: isCustom ? customModelName : selectedModel },
+        { key: "ai_provider", value: isCustom ? "custom" : "lovable" },
         { key: "custom_api_key", value: isCustom ? customApiKey : "" },
         { key: "custom_endpoint", value: isCustom ? customEndpoint : "" },
+        { key: "pricing_enabled", value: pricingEnabled ? "true" : "false" },
+        { key: "payment_provider", value: paymentProvider === "none" ? "" : paymentProvider },
+        { key: "payment_publishable_key", value: paymentPublishableKey },
+        { key: "payment_secret_key", value: paymentSecretKey },
       ];
 
       for (const { key, value } of updates) {
@@ -127,7 +134,6 @@ const AdminSettings = () => {
           .eq("key", key);
 
         if (error) {
-          // If key doesn't exist yet, insert it
           if (error.code === "PGRST116") {
             await (supabase.from("app_config" as any).insert({ key, value, updated_by: user!.id }) as any);
           } else {
@@ -136,7 +142,7 @@ const AdminSettings = () => {
         }
       }
 
-      toast.success("Model configuration saved!");
+      toast.success("Settings saved!");
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Failed to save");
@@ -191,13 +197,7 @@ const AdminSettings = () => {
               <span className="text-sm font-semibold text-foreground">Admin Settings</span>
             </div>
           </div>
-          <Button
-            variant="hero"
-            size="sm"
-            className="gap-2"
-            onClick={handleSave}
-            disabled={saving}
-          >
+          <Button variant="hero" size="sm" className="gap-2" onClick={handleSave} disabled={saving}>
             <Save className="h-4 w-4" />
             {saving ? "Saving..." : "Save Changes"}
           </Button>
@@ -211,7 +211,7 @@ const AdminSettings = () => {
           transition={{ duration: 0.4 }}
           className="space-y-8"
         >
-          {/* Current config */}
+          {/* Current model info */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-center gap-3">
               <Bot className="h-5 w-5 text-primary" />
@@ -225,12 +225,11 @@ const AdminSettings = () => {
             </div>
           </div>
 
-          {/* Model selector */}
+          {/* AI Model Configuration */}
           <section className="space-y-4">
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               <Bot className="h-4 w-4" /> AI Model Configuration
             </h2>
-
             <div className="space-y-4 rounded-xl border border-border bg-card p-5">
               <div className="space-y-2">
                 <Label>Model</Label>
@@ -254,12 +253,9 @@ const AdminSettings = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {isCustom
-                    ? "Use your own OpenAI-compatible API endpoint and key."
-                    : "Powered by Lovable AI — no API key needed."}
+                  {isCustom ? "Use your own OpenAI-compatible API endpoint and key." : "Powered by Lovable AI — no API key needed."}
                 </p>
               </div>
-
               {isCustom && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -268,50 +264,42 @@ const AdminSettings = () => {
                 >
                   <div className="space-y-2">
                     <Label>Custom Model Name</Label>
-                    <Input
-                      value={customModelName}
-                      onChange={(e) => setCustomModelName(e.target.value)}
-                      placeholder="e.g. gpt-4o, claude-3.5-sonnet"
-                    />
+                    <Input value={customModelName} onChange={(e) => setCustomModelName(e.target.value)} placeholder="e.g. gpt-4o, claude-3.5-sonnet" />
                   </div>
-
                   <div className="space-y-2">
                     <Label>API Endpoint</Label>
-                    <Input
-                      value={customEndpoint}
-                      onChange={(e) => setCustomEndpoint(e.target.value)}
-                      placeholder="e.g. https://api.openai.com/v1/chat/completions"
-                    />
+                    <Input value={customEndpoint} onChange={(e) => setCustomEndpoint(e.target.value)} placeholder="e.g. https://api.openai.com/v1/chat/completions" />
                   </div>
-
                   <div className="space-y-2">
                     <Label>API Key</Label>
                     <div className="relative">
-                      <Input
-                        type={showApiKey ? "text" : "password"}
-                        value={customApiKey}
-                        onChange={(e) => setCustomApiKey(e.target.value)}
-                        placeholder="sk-..."
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
+                      <Input type={showApiKey ? "text" : "password"} value={customApiKey} onChange={(e) => setCustomApiKey(e.target.value)} placeholder="sk-..." className="pr-10" />
+                      <button type="button" onClick={() => setShowApiKey(!showApiKey)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                         {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Stored securely. Only admins can view or change this.
-                    </p>
                   </div>
                 </motion.div>
               )}
             </div>
           </section>
 
-          {/* Info section */}
+          {/* Pricing */}
+          <PricingConfigSection pricingEnabled={pricingEnabled} onToggle={setPricingEnabled} />
+
+          {/* Payment */}
+          {pricingEnabled && (
+            <PaymentConfigSection
+              provider={paymentProvider}
+              onProviderChange={setPaymentProvider}
+              publishableKey={paymentPublishableKey}
+              onPublishableKeyChange={setPaymentPublishableKey}
+              secretKey={paymentSecretKey}
+              onSecretKeyChange={setPaymentSecretKey}
+            />
+          )}
+
+          {/* Info */}
           <section className="rounded-xl border border-border bg-card p-5">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
               <Key className="h-4 w-4" /> How it works
@@ -319,24 +307,15 @@ const AdminSettings = () => {
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li className="flex gap-2">
                 <Zap className="mt-0.5 h-3 w-3 flex-shrink-0 text-primary" />
-                <span>
-                  <strong className="text-foreground">Lovable AI models</strong> work out of the box — no
-                  API key needed. Usage is billed through your Lovable workspace.
-                </span>
+                <span><strong className="text-foreground">Lovable AI models</strong> work out of the box — no API key needed.</span>
               </li>
               <li className="flex gap-2">
                 <Key className="mt-0.5 h-3 w-3 flex-shrink-0 text-primary" />
-                <span>
-                  <strong className="text-foreground">Custom models</strong> let you use any
-                  OpenAI-compatible API. Provide your endpoint, model name, and API key.
-                </span>
+                <span><strong className="text-foreground">Pricing</strong> — toggle on to require purchases before creating goals. Configure your payment provider credentials above.</span>
               </li>
               <li className="flex gap-2">
                 <Shield className="mt-0.5 h-3 w-3 flex-shrink-0 text-primary" />
-                <span>
-                  Changes take effect immediately for all new chat sessions. Only admins can
-                  modify these settings.
-                </span>
+                <span>Changes take effect immediately. Only admins can modify these settings.</span>
               </li>
             </ul>
           </section>
