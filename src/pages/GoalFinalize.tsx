@@ -19,6 +19,8 @@ import {
 import { GoalPlan } from "@/lib/goalPlan";
 import { saveGoalPlan } from "@/lib/goalService";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePaywall } from "@/hooks/usePaywall";
+import PaywallDialog from "@/components/PaywallDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -72,6 +74,8 @@ const GoalFinalize = () => {
   const [resources, setResources] = useState<string[]>(initialPlan?.resources || []);
   const [newResource, setNewResource] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const paywall = usePaywall();
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   if (!initialPlan) {
     return (
@@ -131,6 +135,10 @@ const GoalFinalize = () => {
     }
     if (tasks.filter((t) => t.title.trim()).length === 0) {
       toast.error("Please add at least one task");
+      return;
+    }
+    if (paywall.pricingEnabled && !paywall.canCreateGoal) {
+      setPaywallOpen(true);
       return;
     }
 
@@ -432,6 +440,13 @@ const GoalFinalize = () => {
           </div>
         </motion.div>
       </main>
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        plans={paywall.plans}
+        goalCount={paywall.goalCount}
+        goalsAllowed={paywall.goalsAllowed}
+      />
     </div>
   );
 };

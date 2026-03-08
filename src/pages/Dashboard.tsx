@@ -32,7 +32,7 @@ const Dashboard = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
-    { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
+    { icon: Plus, label: "Create Goal", active: false, href: "/goal/new", onClick: handleCreateGoal },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
     ...(isAdmin ? [{ icon: Shield, label: "Admin", active: false, href: "/admin" }] : []),
   ];
@@ -80,6 +80,12 @@ const Dashboard = () => {
               <Link
                 key={item.label}
                 to={item.href}
+                onClick={(e) => {
+                  if ((item as any).onClick) {
+                    e.preventDefault();
+                    (item as any).onClick();
+                  }
+                }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                   item.active
                     ? "bg-primary/10 text-primary font-medium"
@@ -136,7 +142,13 @@ const Dashboard = () => {
                     <Link
                       key={item.label}
                       to={item.href}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={(e) => {
+                        if ((item as any).onClick) {
+                          e.preventDefault();
+                          (item as any).onClick();
+                        }
+                        setMobileOpen(false);
+                      }}
                       className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                         item.active
                           ? "bg-primary/10 text-primary font-medium"
@@ -204,7 +216,7 @@ const Dashboard = () => {
               <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
                 Create your first goal and let AI help you build an actionable plan to achieve it.
               </p>
-              <Button variant="hero" className="gap-2" onClick={() => navigate("/goal/new")}>
+              <Button variant="hero" className="gap-2" onClick={handleCreateGoal}>
                 <Plus className="h-4 w-4" /> Create Your First Plan
               </Button>
             </div>
