@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics } from "@/lib/goalService";
+import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics, isUserAdmin } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
 import { toast } from "sonner";
 import { usePaywall } from "@/hooks/usePaywall";
@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const paywall = usePaywall();
   const [paywallOpen, setPaywallOpen] = useState(false);
 
@@ -31,10 +32,9 @@ const Dashboard = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
-    
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
-    { icon: Shield, label: "Admin", active: false, href: "/admin" },
+    ...(isAdmin ? [{ icon: Shield, label: "Admin", active: false, href: "/admin" }] : []),
   ];
 
   useEffect(() => {
@@ -42,6 +42,7 @@ const Dashboard = () => {
     Promise.all([
       fetchUserGoals(user.id),
       fetchDashboardAnalytics(user.id),
+      isUserAdmin(user.id).then(setIsAdmin),
     ])
       .then(([g, a]) => {
         setGoals(g);
