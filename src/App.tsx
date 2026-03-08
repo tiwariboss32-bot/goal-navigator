@@ -60,6 +60,14 @@ const App = () => (
               }
             />
             <Route path="/shared/:slug" element={<SharedGoalPage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminSettings />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
