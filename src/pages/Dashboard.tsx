@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
 import { toast } from "sonner";
+import { usePaywall } from "@/hooks/usePaywall";
+import PaywallDialog from "@/components/PaywallDialog";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -16,6 +18,16 @@ const Dashboard = () => {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const paywall = usePaywall();
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  const handleCreateGoal = () => {
+    if (paywall.pricingEnabled && !paywall.canCreateGoal) {
+      setPaywallOpen(true);
+      return;
+    }
+    navigate("/goal/new");
+  };
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
@@ -131,7 +143,7 @@ const Dashboard = () => {
             <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
           </div>
           <div className="ml-auto">
-            <Button variant="hero" size="sm" className="gap-1.5 text-xs" onClick={() => navigate("/goal/new")}>
+            <Button variant="hero" size="sm" className="gap-1.5 text-xs" onClick={handleCreateGoal}>
               <Plus className="h-3.5 w-3.5" /> New
             </Button>
           </div>
@@ -150,7 +162,7 @@ const Dashboard = () => {
                 Welcome back, {user?.email}
               </p>
             </div>
-            <Button variant="hero" size="sm" className="gap-2" onClick={() => navigate("/goal/new")}>
+            <Button variant="hero" size="sm" className="gap-2" onClick={handleCreateGoal}>
               <Plus className="h-4 w-4" /> New Plan
             </Button>
           </div>
@@ -244,6 +256,13 @@ const Dashboard = () => {
         </motion.div>
         </div>
       </main>
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        plans={paywall.plans}
+        goalCount={paywall.goalCount}
+        goalsAllowed={paywall.goalsAllowed}
+      />
     </div>
   );
 };
