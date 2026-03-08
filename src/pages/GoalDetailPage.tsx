@@ -145,7 +145,7 @@ const GoalDetailPage = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
                 <Zap className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
-              <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+              <span className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-[200px]">
                 {goal.title}
               </span>
             </div>
@@ -153,16 +153,17 @@ const GoalDetailPage = () => {
           <Button
             variant={goal.status === "completed" ? "outline" : "hero"}
             size="sm"
-            className="gap-2"
+            className="gap-1.5 flex-shrink-0 text-xs sm:text-sm sm:gap-2"
             onClick={handleMarkComplete}
           >
-            <Trophy className="h-4 w-4" />
-            {goal.status === "completed" ? "Reopen" : "Mark Complete"}
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{goal.status === "completed" ? "Reopen" : "Mark Complete"}</span>
+            <span className="sm:hidden">{goal.status === "completed" ? "Reopen" : "Complete"}</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto max-w-3xl px-4 py-8 md:px-6">
+      <main className="container mx-auto max-w-3xl px-4 py-6 sm:py-8 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}

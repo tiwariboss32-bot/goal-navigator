@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
@@ -14,6 +15,14 @@ const Dashboard = () => {
   const [goals, setGoals] = useState<GoalWithTasks[]>([]);
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navItems = [
+    { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
+    { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
+    { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
+    { icon: Settings, label: "Settings", active: false, href: "/dashboard" },
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -34,7 +43,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-shrink-0 border-r border-border bg-card md:flex md:flex-col">
         <div className="flex h-16 items-center gap-2 border-b border-border px-6">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
@@ -42,14 +51,8 @@ const Dashboard = () => {
           </div>
           <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
         </div>
-
         <nav className="flex-1 space-y-1 p-4">
-          {[
-            { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
-            { icon: Target, label: "My Goals", active: false, href: "/dashboard" },
-            { icon: Plus, label: "Create Goal", active: false, href: "/goal/new" },
-            { icon: Settings, label: "Settings", active: false, href: "/dashboard" },
-          ].map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.label}
               to={item.href}
@@ -64,7 +67,6 @@ const Dashboard = () => {
             </Link>
           ))}
         </nav>
-
         <div className="border-t border-border p-4">
           <button
             onClick={signOut}
@@ -77,7 +79,64 @@ const Dashboard = () => {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 p-6 md:p-10">
+      <main className="flex-1 overflow-auto">
+        {/* Mobile header */}
+        <div className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background/80 backdrop-blur-xl px-4 md:hidden">
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <button className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 bg-card p-0 border-border">
+              <div className="flex h-16 items-center gap-2 border-b border-border px-6">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
+                  <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+                <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
+              </div>
+              <nav className="flex-1 space-y-1 p-4">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                      item.active
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+              <div className="border-t border-border p-4">
+                <button
+                  onClick={() => { setMobileOpen(false); signOut(); }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            </SheetContent>
+          </Sheet>
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
+              <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+            </div>
+            <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
+          </div>
+          <div className="ml-auto">
+            <Button variant="hero" size="sm" className="gap-1.5 text-xs" onClick={() => navigate("/goal/new")}>
+              <Plus className="h-3.5 w-3.5" /> New
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6 md:p-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -182,6 +241,7 @@ const Dashboard = () => {
             </>
           )}
         </motion.div>
+        </div>
       </main>
     </div>
   );

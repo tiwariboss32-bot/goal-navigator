@@ -77,32 +77,34 @@ const GoalChat = () => {
       {/* Chat panel */}
       <div className="flex flex-1 flex-col">
         {/* Header */}
-        <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
-          <div className="flex items-center gap-3">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-card px-3 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link
               to="/dashboard"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-primary">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-primary">
                 <Zap className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
-              <span className="text-sm font-semibold text-foreground">Goal Planning</span>
+              <span className="text-sm font-semibold text-foreground truncate">Goal Planning</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {plan && (
-              <Button variant="hero" size="sm" className="gap-2" onClick={handleFinalize}>
-                Finalize Plan <ArrowRight className="h-4 w-4" />
+              <Button variant="hero" size="sm" className="gap-1.5 text-xs sm:text-sm sm:gap-2" onClick={handleFinalize}>
+                <span className="hidden sm:inline">Finalize Plan</span>
+                <span className="sm:hidden">Finalize</span>
+                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             )}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowPreview(!showPreview)}
-              className="h-8 w-8 md:flex hidden"
+              className="h-8 w-8 hidden md:flex"
             >
               {showPreview ? (
                 <PanelRightClose className="h-4 w-4" />
