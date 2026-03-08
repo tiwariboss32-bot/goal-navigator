@@ -13,6 +13,10 @@ import {
   Circle,
   Trophy,
   StickyNote,
+  Share2,
+  Link2,
+  Globe,
+  Lock,
 } from "lucide-react";
 import {
   fetchGoalDetail,
