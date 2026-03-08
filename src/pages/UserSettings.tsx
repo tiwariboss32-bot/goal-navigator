@@ -363,6 +363,7 @@ const UserSettings = () => {
           </section>
         </motion.div>
       </main>
+      <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
     </div>
   );
 };
