@@ -3,31 +3,45 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu, Shield } from "lucide-react";
+import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu, Shield, CreditCard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics, isUserAdmin } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
 import { toast } from "sonner";
-import { usePaywall } from "@/hooks/usePaywall";
 import PaywallDialog from "@/components/PaywallDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { getTierByKey } from "@/lib/subscriptionPlans";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, subscription } = useAuth();
   const navigate = useNavigate();
   const [goals, setGoals] = useState<GoalWithTasks[]>([]);
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const paywall = usePaywall();
   const [paywallOpen, setPaywallOpen] = useState(false);
 
+  const currentPlan = getTierByKey(subscription.tier);
+
   const handleCreateGoal = () => {
-    if (paywall.pricingEnabled && !paywall.canCreateGoal) {
+    // Free tier: enforce goal limit
+    if (subscription.tier === "free" && currentPlan.goalLimit > 0 && goals.length >= currentPlan.goalLimit) {
       setPaywallOpen(true);
       return;
     }
     navigate("/goal/new");
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (e: any) {
+      toast.error(e.message || "Failed to open billing portal");
+    }
   };
 
   const navItems = [
@@ -66,39 +80,47 @@ const Dashboard = () => {
           <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
         </div>
         <nav className="flex-1 space-y-1 p-4">
-          {navItems.map((item) =>
-            (item as any).isAnchor ? (
-              <a
-                key={item.label}
-                href={item.href}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-muted hover:text-foreground`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </a>
-            ) : (
-              <Link
-                key={item.label}
-                to={item.href}
-                onClick={(e) => {
-                  if ((item as any).onClick) {
-                    e.preventDefault();
-                    (item as any).onClick();
-                  }
-                }}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  item.active
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            )
-          )}
+          {navItems.map((item) => (
+            <Link
+              key={item.label}
+              to={item.href}
+              onClick={(e) => {
+                if ((item as any).onClick) {
+                  e.preventDefault();
+                  (item as any).onClick();
+                }
+              }}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                item.active
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          ))}
         </nav>
-        <div className="border-t border-border p-4">
+
+        {/* Plan badge + manage */}
+        <div className="border-t border-border p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Plan</span>
+            <Badge variant="secondary" className="text-xs capitalize">{subscription.tier}</Badge>
+          </div>
+          {subscription.subscribed && (
+            <button
+              onClick={handleManageSubscription}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <CreditCard className="h-3.5 w-3.5" /> Manage Billing
+            </button>
+          )}
+          {!subscription.subscribed && subscription.tier === "free" && (
+            <Button variant="hero" size="sm" className="w-full text-xs gap-1.5" onClick={() => setPaywallOpen(true)}>
+              <Zap className="h-3.5 w-3.5" /> Upgrade
+            </Button>
+          )}
           <button
             onClick={signOut}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
@@ -127,39 +149,27 @@ const Dashboard = () => {
                 <span className="text-sm font-bold text-foreground">GoalBuilder AI</span>
               </div>
               <nav className="flex-1 space-y-1 p-4">
-                {navItems.map((item) =>
-                  (item as any).isAnchor ? (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-muted hover:text-foreground`}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </a>
-                  ) : (
-                    <Link
-                      key={item.label}
-                      to={item.href}
-                      onClick={(e) => {
-                        if ((item as any).onClick) {
-                          e.preventDefault();
-                          (item as any).onClick();
-                        }
-                        setMobileOpen(false);
-                      }}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                        item.active
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  )
-                )}
+                {navItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={(e) => {
+                      if ((item as any).onClick) {
+                        e.preventDefault();
+                        (item as any).onClick();
+                      }
+                      setMobileOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                      item.active
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                ))}
               </nav>
               <div className="border-t border-border p-4">
                 <button
@@ -222,10 +232,8 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              {/* Analytics */}
               {analytics && <AnalyticsSection analytics={analytics} />}
 
-              {/* Goals header */}
               <div id="goals" className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Your Goals ({goals.length})
@@ -276,7 +284,6 @@ const Dashboard = () => {
                         </span>
                       </div>
 
-                      {/* Progress bar */}
                       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full bg-gradient-primary transition-all duration-500"
@@ -295,9 +302,6 @@ const Dashboard = () => {
       <PaywallDialog
         open={paywallOpen}
         onOpenChange={setPaywallOpen}
-        plans={paywall.plans}
-        goalCount={paywall.goalCount}
-        goalsAllowed={paywall.goalsAllowed}
       />
     </div>
   );
