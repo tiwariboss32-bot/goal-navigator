@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, Save, Check } from "lucide-react";
+import { ArrowLeft, Zap, PanelRightOpen, PanelRightClose, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ChatMessages from "@/components/chat/ChatMessages";
@@ -8,12 +8,9 @@ import ChatInput from "@/components/chat/ChatInput";
 import PlanPreview from "@/components/chat/PlanPreview";
 import { ChatMessage, GoalPlan, extractPlan } from "@/lib/goalPlan";
 import { streamGoalChat } from "@/lib/streamChat";
-import { saveGoalPlan } from "@/lib/goalService";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const GoalChat = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -25,8 +22,6 @@ const GoalChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [plan, setPlan] = useState<GoalPlan | null>(null);
   const [showPreview, setShowPreview] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const handleSend = useCallback(
     async (input: string) => {
@@ -34,7 +29,6 @@ const GoalChat = () => {
       const updatedMessages = [...messages, userMsg];
       setMessages(updatedMessages);
       setIsLoading(true);
-      setSaved(false);
 
       let assistantSoFar = "";
 
@@ -73,20 +67,9 @@ const GoalChat = () => {
     [messages, showPreview]
   );
 
-  const handleSavePlan = async () => {
-    if (!plan || !user) return;
-    setSaving(true);
-    try {
-      await saveGoalPlan(plan, user.id);
-      setSaved(true);
-      toast.success("Plan saved! Redirecting to dashboard...");
-      setTimeout(() => navigate("/dashboard"), 1500);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Failed to save plan");
-    } finally {
-      setSaving(false);
-    }
+  const handleFinalize = () => {
+    if (!plan) return;
+    navigate("/goal/finalize", { state: { plan } });
   };
 
   return (
@@ -111,20 +94,8 @@ const GoalChat = () => {
           </div>
           <div className="flex items-center gap-2">
             {plan && (
-              <Button
-                variant="hero"
-                size="sm"
-                className="gap-2"
-                onClick={handleSavePlan}
-                disabled={saving || saved}
-              >
-                {saved ? (
-                  <><Check className="h-4 w-4" /> Saved</>
-                ) : saving ? (
-                  "Saving..."
-                ) : (
-                  <><Save className="h-4 w-4" /> Save Plan</>
-                )}
+              <Button variant="hero" size="sm" className="gap-2" onClick={handleFinalize}>
+                Finalize Plan <ArrowRight className="h-4 w-4" />
               </Button>
             )}
             <Button
@@ -163,10 +134,9 @@ const GoalChat = () => {
                 variant="hero"
                 size="sm"
                 className="gap-1.5 text-xs"
-                onClick={handleSavePlan}
-                disabled={saving || saved}
+                onClick={handleFinalize}
               >
-                {saved ? <><Check className="h-3 w-3" /> Saved</> : saving ? "Saving..." : <><Save className="h-3 w-3" /> Save</>}
+                Finalize <ArrowRight className="h-3 w-3" />
               </Button>
             )}
           </div>
