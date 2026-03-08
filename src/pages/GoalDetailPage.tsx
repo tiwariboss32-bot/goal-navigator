@@ -23,6 +23,7 @@ import {
   toggleTaskComplete,
   toggleMilestoneComplete,
   updateGoalStatus,
+  toggleGoalSharing,
   GoalDetail,
 } from "@/lib/goalService";
 import { toast } from "sonner";
