@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const paywall = usePaywall();
   const [paywallOpen, setPaywallOpen] = useState(false);
 
