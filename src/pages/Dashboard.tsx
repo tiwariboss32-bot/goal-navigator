@@ -204,7 +204,7 @@ const Dashboard = () => {
               <p className="mb-6 max-w-sm text-center text-sm text-muted-foreground">
                 Create your first goal and let AI help you build an actionable plan to achieve it.
               </p>
-              <Button variant="hero" className="gap-2" onClick={() => navigate("/goal/new")}>
+              <Button variant="hero" className="gap-2" onClick={handleCreateGoal}>
                 <Plus className="h-4 w-4" /> Create Your First Plan
               </Button>
             </div>
