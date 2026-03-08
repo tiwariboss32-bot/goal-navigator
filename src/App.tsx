@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import GoalChat from "./pages/GoalChat";
 import GoalFinalize from "./pages/GoalFinalize";
+import GoalDetailPage from "./pages/GoalDetailPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -45,6 +46,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <GoalFinalize />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/goal/:id"
+              element={
+                <ProtectedRoute>
+                  <GoalDetailPage />
                 </ProtectedRoute>
               }
             />

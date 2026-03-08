@@ -100,3 +100,82 @@ export async function fetchUserGoals(userId: string): Promise<GoalWithTasks[]> {
     completed_count: taskMap[g.id]?.completed || 0,
   }));
 }
+
+export type GoalDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  timeline: string | null;
+  status: string;
+  resources: string[] | null;
+  created_at: string;
+  tasks: {
+    id: string;
+    title: string;
+    description: string | null;
+    deadline: string | null;
+    priority: string;
+    completed: boolean;
+    sort_order: number;
+  }[];
+  milestones: {
+    id: string;
+    title: string;
+    target_date: string | null;
+    completed: boolean;
+    sort_order: number;
+  }[];
+};
+
+export async function fetchGoalDetail(goalId: string): Promise<GoalDetail> {
+  const { data: goal, error } = await supabase
+    .from("goals")
+    .select("*")
+    .eq("id", goalId)
+    .single();
+
+  if (error || !goal) throw new Error(error?.message || "Goal not found");
+
+  const [{ data: tasks }, { data: milestones }] = await Promise.all([
+    supabase
+      .from("goal_tasks")
+      .select("*")
+      .eq("goal_id", goalId)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("goal_milestones")
+      .select("*")
+      .eq("goal_id", goalId)
+      .order("sort_order", { ascending: true }),
+  ]);
+
+  return {
+    ...goal,
+    tasks: tasks || [],
+    milestones: milestones || [],
+  };
+}
+
+export async function toggleTaskComplete(taskId: string, completed: boolean) {
+  const { error } = await supabase
+    .from("goal_tasks")
+    .update({ completed })
+    .eq("id", taskId);
+  if (error) throw new Error(error.message);
+}
+
+export async function toggleMilestoneComplete(milestoneId: string, completed: boolean) {
+  const { error } = await supabase
+    .from("goal_milestones")
+    .update({ completed })
+    .eq("id", milestoneId);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateGoalStatus(goalId: string, status: string) {
+  const { error } = await supabase
+    .from("goals")
+    .update({ status })
+    .eq("id", goalId);
+  if (error) throw new Error(error.message);
+}
