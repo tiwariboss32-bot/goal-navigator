@@ -163,7 +163,7 @@ const GoalDetailPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto max-w-3xl px-4 py-8 md:px-6">
+      <main className="container mx-auto max-w-3xl px-4 py-6 sm:py-8 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
