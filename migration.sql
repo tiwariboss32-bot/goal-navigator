@@ -8,6 +8,11 @@ CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
 CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 
 -- ============================================
+-- Enums
+-- ============================================
+CREATE TYPE public.app_role AS ENUM ('admin', 'moderator', 'user');
+
+-- ============================================
 -- Tables
 -- ============================================
 
@@ -26,6 +31,71 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = user_id);
+
+-- User Roles
+CREATE TABLE public.user_roles (
+  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role app_role NOT NULL,
+  UNIQUE (user_id, role)
+);
+
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own roles" ON public.user_roles FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+-- App Config
+CREATE TABLE public.app_config (
+  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  key text NOT NULL UNIQUE,
+  value text NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  updated_by uuid
+);
+
+ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read config" ON public.app_config FOR SELECT TO public USING (true);
+CREATE POLICY "Admins can insert config" ON public.app_config FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can update config" ON public.app_config FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+
+-- Pricing Plans
+CREATE TABLE public.pricing_plans (
+  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL,
+  price_cents integer NOT NULL,
+  goal_limit integer NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.pricing_plans ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view active plans" ON public.pricing_plans FOR SELECT TO anon, authenticated USING (is_active = true);
+CREATE POLICY "Admins can insert plans" ON public.pricing_plans FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can update plans" ON public.pricing_plans FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can delete plans" ON public.pricing_plans FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+
+-- User Purchases
+CREATE TABLE public.user_purchases (
+  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan_id uuid REFERENCES public.pricing_plans(id),
+  goals_allowed integer NOT NULL DEFAULT 0,
+  status text NOT NULL DEFAULT 'active',
+  payment_id text,
+  payment_provider text,
+  expires_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.user_purchases ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own purchases" ON public.user_purchases FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Admins can view all purchases" ON public.user_purchases FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can insert purchases" ON public.user_purchases FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can update purchases" ON public.user_purchases FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Goals
 CREATE TABLE public.goals (
@@ -125,6 +195,19 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = _user_id AND role = _role
+  )
+$$;
+
 -- Trigger: auto-create profile on signup
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -139,3 +222,28 @@ CREATE TRIGGER update_goals_updated_at
 CREATE TRIGGER update_goal_tasks_updated_at
   BEFORE UPDATE ON public.goal_tasks
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- ============================================
+-- Storage
+-- ============================================
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- Seed Data
+-- ============================================
+
+-- Default app config
+INSERT INTO public.app_config (key, value) VALUES
+  ('ai_provider', 'lovable'),
+  ('ai_model', 'google/gemini-3-flash-preview'),
+  ('custom_api_key', ''),
+  ('custom_endpoint', '')
+ON CONFLICT (key) DO NOTHING;
+
+-- Default pricing plans
+INSERT INTO public.pricing_plans (name, price_cents, goal_limit, is_active, sort_order) VALUES
+  ('Free', 0, 1, true, 0),
+  ('Starter', 999, 5, true, 1),
+  ('Pro', 1999, 25, true, 2),
+  ('Unlimited', 4999, 9999, true, 3);
