@@ -12,3 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /admin    
+
+Sitemap: https://goalbuilder.online/sitemap.xml
