@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { getTierByKey, PLAN_TIERS } from "@/lib/subscriptionPlans";
 import PaywallDialog from "@/components/PaywallDialog";
+import { usePricingEnabled } from "@/hooks/usePricingEnabled";
 
 const UserSettings = () => {
   const { user, subscription } = useAuth();
