@@ -279,7 +279,8 @@ const UserSettings = () => {
             </div>
           </section>
 
-          {/* Subscription plan */}
+          {/* Subscription plan — only when pricing is enabled */}
+          {pricingEnabled && (
           <section className="space-y-4 rounded-xl border border-border bg-card p-5">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Crown className="h-4 w-4 text-primary" /> Subscription Plan
@@ -345,6 +346,7 @@ const UserSettings = () => {
               </Button>
             </div>
           </section>
+          )}
 
           {/* Danger zone */}
           <section className="rounded-xl border border-destructive/20 bg-destructive/5 p-5">
