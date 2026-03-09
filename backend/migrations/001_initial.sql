@@ -1,0 +1,2 @@
+-- Initial migration placeholder
+-- Future schema definitions will go here
