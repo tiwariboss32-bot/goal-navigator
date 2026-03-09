@@ -26,6 +26,7 @@ import { usePricingEnabled } from "@/hooks/usePricingEnabled";
 
 const UserSettings = () => {
   const { user, subscription } = useAuth();
+  const pricingEnabled = usePricingEnabled();
   const currentPlan = getTierByKey(subscription.tier);
   const isTopTier = subscription.tier === "power";
   const [paywallOpen, setPaywallOpen] = useState(false);
