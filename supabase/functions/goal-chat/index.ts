@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GoogleGenAI } from "npm:@google/genai";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,6 +45,64 @@ IMPORTANT RULES:
 
 const LOVABLE_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+function isGeminiEndpoint(endpoint: string): boolean {
+  return endpoint.includes("googleapis.com") || endpoint.includes("generativelanguage.googleapis.com");
+}
+
+// Convert chat messages to Gemini SDK format
+function toGeminiContents(messages: Array<{ role: string; content: string }>) {
+  return messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+}
+
+// Stream Gemini response as SSE (OpenAI-compatible format) so the frontend parser works unchanged
+async function streamGeminiAsSSE(
+  apiKey: string,
+  model: string,
+  messages: Array<{ role: string; content: string }>
+): Promise<Response> {
+  const ai = new GoogleGenAI({ apiKey });
+
+  // Separate system instruction from conversation
+  const systemInstruction = SYSTEM_PROMPT;
+  const conversationMessages = toGeminiContents(messages);
+
+  const stream = await ai.models.generateContentStream({
+    model,
+    contents: conversationMessages,
+    config: { systemInstruction },
+  });
+
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.text;
+          if (text) {
+            // Emit in OpenAI SSE format so the frontend parser works as-is
+            const ssePayload = JSON.stringify({
+              choices: [{ delta: { content: text } }],
+            });
+            controller.enqueue(encoder.encode(`data: ${ssePayload}\n\n`));
+          }
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      } catch (err) {
+        console.error("Gemini stream error:", err);
+        controller.error(err);
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -70,7 +129,12 @@ serve(async (req) => {
     const customApiKey = configMap["custom_api_key"] || "";
     const customEndpoint = configMap["custom_endpoint"] || "";
 
-    // Determine endpoint and auth
+    // --- Custom provider: Gemini direct ---
+    if (provider === "custom" && customApiKey && isGeminiEndpoint(customEndpoint)) {
+      return await streamGeminiAsSSE(customApiKey, model, messages);
+    }
+
+    // --- Custom provider: OpenAI-compatible ---
     let apiUrl: string;
     let authHeader: string;
 
