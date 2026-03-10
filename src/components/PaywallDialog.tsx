@@ -73,7 +73,8 @@ const PaywallDialog = ({ open, onOpenChange }: Props) => {
                   size="sm"
                   variant="hero"
                   className="gap-1.5"
-                  disabled={loadingPlan !== null}
+                  disabled=true
+                  // disabled={loadingPlan !== null}
                   onClick={() => handleBuy(plan.key)}
                 >
                   {loadingPlan === plan.key ? (
