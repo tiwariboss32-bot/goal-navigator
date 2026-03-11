@@ -436,6 +436,13 @@ const GoalDetailPage = () => {
           </section>
         </motion.div>
       </main>
+      <TaskReflectionDialog
+        open={!!reflectionTaskId}
+        onOpenChange={(open) => { if (!open) setReflectionTaskId(null); }}
+        taskId={reflectionTaskId}
+        taskTitle={reflectionTaskTitle}
+        onCompleted={load}
+      />
     </div>
   );
 };
