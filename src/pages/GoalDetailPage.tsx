@@ -40,6 +40,8 @@ const GoalDetailPage = () => {
   const [goal, setGoal] = useState<GoalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState("");
+  const [reflectionTaskId, setReflectionTaskId] = useState<string | null>(null);
+  const [reflectionTaskTitle, setReflectionTaskTitle] = useState("");
 
   const load = useCallback(async () => {
     if (!id) return;
