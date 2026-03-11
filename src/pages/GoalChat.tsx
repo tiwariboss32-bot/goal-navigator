@@ -137,6 +137,16 @@ const GoalChat = () => {
 
         <ChatMessages messages={messages} isLoading={isLoading} />
         <ChatInput onSend={handleSend} disabled={isLoading} />
+
+        {/* Mobile FAB for finalize */}
+        {plan && (
+          <button
+            onClick={handleFinalize}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg md:hidden"
+          >
+            Finalize <ArrowRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Plan preview panel */}
