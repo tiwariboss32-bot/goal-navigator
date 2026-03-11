@@ -11,6 +11,7 @@ import GoalChat from "./pages/GoalChat";
 import GoalFinalize from "./pages/GoalFinalize";
 import GoalDetailPage from "./pages/GoalDetailPage";
 import SharedGoalPage from "./pages/SharedGoalPage";
+import PublicGoals from "./pages/PublicGoals";
 import AdminSettings from "./pages/AdminSettings";
 import UserSettings from "./pages/UserSettings";
 import PaymentSuccess from "./pages/PaymentSuccess";
