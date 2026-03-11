@@ -20,7 +20,33 @@ const ChatMessages = ({
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       {messages.map((msg, i) => {
+        const isLastMsg = i === messages.length - 1;
+        const hasPlanOpen = msg.role === "assistant" && msg.content.includes("<plan>") && !msg.content.includes("</plan>");
         const displayText = msg.role === "assistant" ? stripPlanFromText(msg.content) : msg.content;
+
+        // If plan tag is open and streaming, show placeholder instead of raw JSON
+        if (hasPlanOpen && isLoading && isLastMsg) {
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex gap-3"
+            >
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Bot className="h-4 w-4 text-primary" />
+              </div>
+              <div className="max-w-[80%] rounded-xl px-4 py-3 text-sm bg-card border border-border text-card-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <span>Generating your plan…</span>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
         if (!displayText) return null;
 
         return (
