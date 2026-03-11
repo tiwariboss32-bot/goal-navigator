@@ -27,6 +27,7 @@ import {
   GoalDetail,
 } from "@/lib/goalService";
 import { toast } from "sonner";
+import TaskReflectionDialog from "@/components/TaskReflectionDialog";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
@@ -39,6 +40,8 @@ const GoalDetailPage = () => {
   const [goal, setGoal] = useState<GoalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState("");
+  const [reflectionTaskId, setReflectionTaskId] = useState<string | null>(null);
+  const [reflectionTaskTitle, setReflectionTaskTitle] = useState("");
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -58,22 +61,29 @@ const GoalDetailPage = () => {
 
   const handleToggleTask = async (taskId: string, current: boolean) => {
     if (!goal) return;
-    // Optimistic update
+    if (!current) {
+      // Opening reflection dialog instead of directly completing
+      const task = goal.tasks.find((t) => t.id === taskId);
+      setReflectionTaskTitle(task?.title || "");
+      setReflectionTaskId(taskId);
+      return;
+    }
+    // Uncompleting: direct toggle
     setGoal((prev) =>
       prev
         ? {
             ...prev,
             tasks: prev.tasks.map((t) =>
-              t.id === taskId ? { ...t, completed: !current } : t
+              t.id === taskId ? { ...t, completed: false } : t
             ),
           }
         : prev
     );
     try {
-      await toggleTaskComplete(taskId, !current);
+      await toggleTaskComplete(taskId, false);
     } catch (e: any) {
       toast.error(e.message);
-      load(); // revert
+      load();
     }
   };
 
@@ -426,6 +436,13 @@ const GoalDetailPage = () => {
           </section>
         </motion.div>
       </main>
+      <TaskReflectionDialog
+        open={!!reflectionTaskId}
+        onOpenChange={(open) => { if (!open) setReflectionTaskId(null); }}
+        taskId={reflectionTaskId}
+        taskTitle={reflectionTaskTitle}
+        onCompleted={load}
+      />
     </div>
   );
 };

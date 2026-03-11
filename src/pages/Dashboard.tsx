@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu, Shield, CreditCard } from "lucide-react";
+import { Zap, Plus, LogOut, LayoutDashboard, Target, Settings, Clock, CheckCircle2, Menu, Shield, CreditCard, Globe } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchUserGoals, fetchDashboardAnalytics, GoalWithTasks, DashboardAnalytics, isUserAdmin } from "@/lib/goalService";
 import AnalyticsSection from "@/components/dashboard/AnalyticsSection";
@@ -47,6 +47,7 @@ const Dashboard = () => {
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new", onClick: handleCreateGoal },
+    { icon: Globe, label: "Explore", active: false, href: "/explore" },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
     ...(isAdmin ? [{ icon: Shield, label: "Admin", active: false, href: "/admin" }] : []),
   ];
