@@ -228,6 +228,38 @@ export type Database = {
         }
         Relationships: []
       }
+      task_completion_logs: {
+        Row: {
+          completed_at: string
+          id: string
+          reflection_text: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          reflection_text: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          reflection_text?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completion_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "goal_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_purchases: {
         Row: {
           created_at: string
