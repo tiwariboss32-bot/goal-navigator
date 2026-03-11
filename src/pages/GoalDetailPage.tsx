@@ -61,22 +61,29 @@ const GoalDetailPage = () => {
 
   const handleToggleTask = async (taskId: string, current: boolean) => {
     if (!goal) return;
-    // Optimistic update
+    if (!current) {
+      // Opening reflection dialog instead of directly completing
+      const task = goal.tasks.find((t) => t.id === taskId);
+      setReflectionTaskTitle(task?.title || "");
+      setReflectionTaskId(taskId);
+      return;
+    }
+    // Uncompleting: direct toggle
     setGoal((prev) =>
       prev
         ? {
             ...prev,
             tasks: prev.tasks.map((t) =>
-              t.id === taskId ? { ...t, completed: !current } : t
+              t.id === taskId ? { ...t, completed: false } : t
             ),
           }
         : prev
     );
     try {
-      await toggleTaskComplete(taskId, !current);
+      await toggleTaskComplete(taskId, false);
     } catch (e: any) {
       toast.error(e.message);
-      load(); // revert
+      load();
     }
   };
 
