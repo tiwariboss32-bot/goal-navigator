@@ -37,6 +37,18 @@ const Navbar = () => {
             </Button>
           ) : (
             <>
+              {/* <a
+                href="/explore"
+                className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+              >
+                Goals
+              </a> */}
+               <Link
+                  to="/explore"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+                >
+                  Goals
+                </Link>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/auth">Log in</Link>
               </Button>

@@ -67,7 +67,7 @@ const PublicGoals = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background/80 backdrop-blur-xl px-4 sm:px-6">
         <Link
-          to="/dashboard"
+          to="/"
           className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />

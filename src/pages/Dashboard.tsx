@@ -47,7 +47,7 @@ const Dashboard = () => {
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true, href: "/dashboard" },
     { icon: Plus, label: "Create Goal", active: false, href: "/goal/new", onClick: handleCreateGoal },
-    { icon: Globe, label: "Explore", active: false, href: "/explore" },
+    // { icon: Globe, label: "Explore", active: false, href: "/explore" },
     { icon: Settings, label: "Settings", active: false, href: "/settings" },
     ...(isAdmin ? [{ icon: Shield, label: "Admin", active: false, href: "/admin" }] : []),
   ];
