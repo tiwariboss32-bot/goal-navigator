@@ -27,6 +27,7 @@ import {
   GoalDetail,
 } from "@/lib/goalService";
 import { toast } from "sonner";
+import TaskReflectionDialog from "@/components/TaskReflectionDialog";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
