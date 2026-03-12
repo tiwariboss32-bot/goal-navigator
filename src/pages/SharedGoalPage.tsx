@@ -10,8 +10,11 @@ import {
   CheckCircle2,
   Circle,
   ExternalLink,
+  Linkedin,
+  Twitter,
+  MessageSquare,
 } from "lucide-react";
-import { fetchPublicGoal, GoalDetail } from "@/lib/goalService";
+import { fetchPublicGoal, GoalDetail, TaskCompletionLog } from "@/lib/goalService";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
