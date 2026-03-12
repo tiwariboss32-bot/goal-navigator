@@ -63,6 +63,11 @@ const SharedGoalPage = () => {
   const totalTasks = goal.tasks.length;
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  const logsByTask: Record<string, TaskCompletionLog> = {};
+  (goal.completionLogs || []).forEach((log) => {
+    logsByTask[log.task_id] = log;
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
