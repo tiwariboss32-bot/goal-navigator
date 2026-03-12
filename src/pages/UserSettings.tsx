@@ -125,8 +125,29 @@ const UserSettings = () => {
     }
   };
 
+  const validateSocialUrl = (url: string, type: "twitter" | "linkedin"): boolean => {
+    if (!url.trim()) return true; // empty is ok
+    try {
+      const parsed = new URL(url);
+      if (type === "twitter") {
+        return ["twitter.com", "www.twitter.com", "x.com", "www.x.com"].includes(parsed.hostname);
+      }
+      return ["linkedin.com", "www.linkedin.com"].includes(parsed.hostname) || parsed.hostname.endsWith(".linkedin.com");
+    } catch {
+      return false;
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
+    if (twitterUrl && !validateSocialUrl(twitterUrl, "twitter")) {
+      toast.error("Twitter URL must be from twitter.com or x.com");
+      return;
+    }
+    if (linkedinUrl && !validateSocialUrl(linkedinUrl, "linkedin")) {
+      toast.error("LinkedIn URL must be from linkedin.com");
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
@@ -134,7 +155,9 @@ const UserSettings = () => {
         .update({
           display_name: displayName.trim(),
           avatar_url: avatarUrl,
-        })
+          twitter_url: twitterUrl.trim() || null,
+          linkedin_url: linkedinUrl.trim() || null,
+        } as any)
         .eq("user_id", user.id);
 
       if (error) throw error;
