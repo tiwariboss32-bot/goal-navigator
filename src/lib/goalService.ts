@@ -113,6 +113,15 @@ export async function fetchUserGoals(userId: string): Promise<GoalWithTasks[]> {
   }));
 }
 
+export type TaskCompletionLog = {
+  id: string;
+  task_id: string;
+  reflection_text: string;
+  linkedin_post: string | null;
+  twitter_post: string | null;
+  completed_at: string;
+};
+
 export type GoalDetail = {
   id: string;
   title: string;
@@ -139,6 +148,7 @@ export type GoalDetail = {
     completed: boolean;
     sort_order: number;
   }[];
+  completionLogs?: TaskCompletionLog[];
 };
 
 export async function fetchGoalDetail(goalId: string): Promise<GoalDetail> {
