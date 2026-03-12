@@ -255,12 +255,23 @@ export async function fetchPublicGoal(slug: string): Promise<GoalDetail> {
       .order("sort_order", { ascending: true }),
   ]);
 
+  const taskIds = (tasks || []).map((t) => t.id);
+  let completionLogs: TaskCompletionLog[] = [];
+  if (taskIds.length > 0) {
+    const { data: logs } = await supabase
+      .from("task_completion_logs" as any)
+      .select("id, task_id, reflection_text, linkedin_post, twitter_post, completed_at")
+      .in("task_id", taskIds);
+    completionLogs = (logs || []) as unknown as TaskCompletionLog[];
+  }
+
   return {
     ...goal,
     is_public: true,
     share_slug: slug,
     tasks: tasks || [],
     milestones: milestones || [],
+    completionLogs,
   };
 }
 
