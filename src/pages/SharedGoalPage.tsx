@@ -10,8 +10,11 @@ import {
   CheckCircle2,
   Circle,
   ExternalLink,
+  Linkedin,
+  Twitter,
+  MessageSquare,
 } from "lucide-react";
-import { fetchPublicGoal, GoalDetail } from "@/lib/goalService";
+import { fetchPublicGoal, GoalDetail, TaskCompletionLog } from "@/lib/goalService";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
@@ -59,6 +62,11 @@ const SharedGoalPage = () => {
   const completedTasks = goal.tasks.filter((t) => t.completed).length;
   const totalTasks = goal.tasks.length;
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  const logsByTask: Record<string, TaskCompletionLog> = {};
+  (goal.completionLogs || []).forEach((log) => {
+    logsByTask[log.task_id] = log;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,51 +150,84 @@ const SharedGoalPage = () => {
               <CheckCircle2 className="h-4 w-4" /> Tasks ({totalTasks})
             </h2>
             <div className="space-y-2">
-              {goal.tasks.map((task, i) => (
+              {goal.tasks.map((task, i) => {
+                const log = logsByTask[task.id];
+                return (
                 <motion.div
                   key={task.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className={`flex items-start gap-3 rounded-xl border p-4 ${
+                  className={`rounded-xl border p-4 ${
                     task.completed
                       ? "border-primary/20 bg-primary/5"
                       : "border-border bg-card"
                   }`}
                 >
-                  <div className="mt-0.5 flex-shrink-0">
-                    {task.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground/40" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm font-medium ${
-                        task.completed
-                          ? "text-muted-foreground line-through"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {task.title}
-                    </p>
-                    {task.description && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
-                    )}
-                    <div className="mt-2 flex items-center gap-3">
-                      <span
-                        className={`text-[10px] font-medium uppercase ${priorityColors[task.priority]}`}
-                      >
-                        {task.priority}
-                      </span>
-                      {task.deadline && (
-                        <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex-shrink-0">
+                      {task.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-muted-foreground/40" />
                       )}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-medium ${
+                          task.completed
+                            ? "text-muted-foreground line-through"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {task.title}
+                      </p>
+                      {task.description && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
+                      )}
+                      <div className="mt-2 flex items-center gap-3">
+                        <span
+                          className={`text-[10px] font-medium uppercase ${priorityColors[task.priority]}`}
+                        >
+                          {task.priority}
+                        </span>
+                        {task.deadline && (
+                          <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Proof in Public */}
+                  {task.completed && log && (
+                    <div className="mt-3 ml-8 space-y-2 border-t border-border/50 pt-3">
+                      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                        <MessageSquare className="h-3 w-3" /> Proof in Public
+                      </p>
+                      <div className="rounded-lg bg-muted/50 p-3 text-xs text-foreground">
+                        {log.reflection_text}
+                      </div>
+                      {log.linkedin_post && (
+                        <div className="rounded-lg border border-border bg-card p-3">
+                          <p className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                            <Linkedin className="h-3 w-3" /> LinkedIn Post
+                          </p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">{log.linkedin_post}</p>
+                        </div>
+                      )}
+                      {log.twitter_post && (
+                        <div className="rounded-lg border border-border bg-card p-3">
+                          <p className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                            <Twitter className="h-3 w-3" /> Twitter / X Post
+                          </p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">{log.twitter_post}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

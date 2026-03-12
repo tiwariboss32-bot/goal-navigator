@@ -207,6 +207,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          linkedin_url: string | null
+          twitter_url: string | null
           updated_at: string
           user_id: string
         }
@@ -215,6 +217,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          linkedin_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -223,6 +227,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          linkedin_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -232,22 +238,28 @@ export type Database = {
         Row: {
           completed_at: string
           id: string
+          linkedin_post: string | null
           reflection_text: string
           task_id: string
+          twitter_post: string | null
           user_id: string
         }
         Insert: {
           completed_at?: string
           id?: string
+          linkedin_post?: string | null
           reflection_text: string
           task_id: string
+          twitter_post?: string | null
           user_id: string
         }
         Update: {
           completed_at?: string
           id?: string
+          linkedin_post?: string | null
           reflection_text?: string
           task_id?: string
+          twitter_post?: string | null
           user_id?: string
         }
         Relationships: [

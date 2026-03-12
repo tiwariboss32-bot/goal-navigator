@@ -18,6 +18,8 @@ import {
   Calendar,
   CreditCard,
   Crown,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getTierByKey, PLAN_TIERS } from "@/lib/subscriptionPlans";
@@ -38,6 +40,8 @@ const UserSettings = () => {
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [twitterUrl, setTwitterUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -48,7 +52,7 @@ const UserSettings = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url")
+        .select("display_name, avatar_url, twitter_url, linkedin_url")
         .eq("user_id", user!.id)
         .single();
 
@@ -58,6 +62,8 @@ const UserSettings = () => {
         setDisplayName(data.display_name || "");
         setAvatarUrl(data.avatar_url);
         setPreviewUrl(data.avatar_url);
+        setTwitterUrl((data as any).twitter_url || "");
+        setLinkedinUrl((data as any).linkedin_url || "");
       }
     } catch (e: any) {
       console.error(e);
@@ -119,8 +125,29 @@ const UserSettings = () => {
     }
   };
 
+  const validateSocialUrl = (url: string, type: "twitter" | "linkedin"): boolean => {
+    if (!url.trim()) return true; // empty is ok
+    try {
+      const parsed = new URL(url);
+      if (type === "twitter") {
+        return ["twitter.com", "www.twitter.com", "x.com", "www.x.com"].includes(parsed.hostname);
+      }
+      return ["linkedin.com", "www.linkedin.com"].includes(parsed.hostname) || parsed.hostname.endsWith(".linkedin.com");
+    } catch {
+      return false;
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
+    if (twitterUrl && !validateSocialUrl(twitterUrl, "twitter")) {
+      toast.error("Twitter URL must be from twitter.com or x.com");
+      return;
+    }
+    if (linkedinUrl && !validateSocialUrl(linkedinUrl, "linkedin")) {
+      toast.error("LinkedIn URL must be from linkedin.com");
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
@@ -128,7 +155,9 @@ const UserSettings = () => {
         .update({
           display_name: displayName.trim(),
           avatar_url: avatarUrl,
-        })
+          twitter_url: twitterUrl.trim() || null,
+          linkedin_url: linkedinUrl.trim() || null,
+        } as any)
         .eq("user_id", user.id);
 
       if (error) throw error;
@@ -275,6 +304,40 @@ const UserSettings = () => {
                       day: "numeric",
                     })
                   : "Unknown"}
+              </div>
+            </div>
+          </section>
+
+          {/* Social Links */}
+          <section className="space-y-5 rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-semibold text-foreground">Social Profiles</h3>
+            <p className="text-xs text-muted-foreground">These links will be visible on your public goals.</p>
+
+            <div className="space-y-2">
+              <Label htmlFor="twitterUrl">Twitter / X</Label>
+              <div className="relative">
+                <Twitter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="twitterUrl"
+                  value={twitterUrl}
+                  onChange={(e) => setTwitterUrl(e.target.value)}
+                  placeholder="https://x.com/username"
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="linkedinUrl">LinkedIn</Label>
+              <div className="relative">
+                <Linkedin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="linkedinUrl"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder="https://linkedin.com/in/username"
+                  className="pl-10"
+                />
               </div>
             </div>
           </section>

@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Loader2, Linkedin, Twitter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toggleTaskComplete } from "@/lib/goalService";
 import { toast } from "sonner";
@@ -30,7 +31,15 @@ const TaskReflectionDialog = ({
   onCompleted,
 }: TaskReflectionDialogProps) => {
   const [reflection, setReflection] = useState("");
+  const [linkedinPost, setLinkedinPost] = useState("");
+  const [twitterPost, setTwitterPost] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const resetFields = () => {
+    setReflection("");
+    setLinkedinPost("");
+    setTwitterPost("");
+  };
 
   const handleSubmit = async () => {
     if (!taskId || !reflection.trim()) return;
@@ -43,12 +52,14 @@ const TaskReflectionDialog = ({
         task_id: taskId,
         user_id: user.id,
         reflection_text: reflection.trim(),
+        linkedin_post: linkedinPost.trim() || null,
+        twitter_post: twitterPost.trim() || null,
       });
       if (error) throw new Error(error.message);
 
       await toggleTaskComplete(taskId, true);
       toast.success("Task completed! 🎉");
-      setReflection("");
+      resetFields();
       onOpenChange(false);
       onCompleted();
     } catch (e: any) {
@@ -59,24 +70,63 @@ const TaskReflectionDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!saving) { onOpenChange(v); setReflection(""); } }}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={(v) => { if (!saving) { onOpenChange(v); resetFields(); } }}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
           <DialogDescription>
             Before marking <span className="font-medium text-foreground">"{taskTitle}"</span> as completed, briefly explain what you did or achieved.
           </DialogDescription>
         </DialogHeader>
-        <Textarea
-          value={reflection}
-          onChange={(e) => setReflection(e.target.value)}
-          placeholder="What did you accomplish? Any learnings or outcomes..."
-          rows={4}
-          className="resize-none"
-          disabled={saving}
-        />
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Completion Notes *</Label>
+            <Textarea
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              placeholder="What did you accomplish? Any learnings or outcomes..."
+              rows={3}
+              className="resize-none"
+              disabled={saving}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Linkedin className="h-3.5 w-3.5 text-muted-foreground" />
+              LinkedIn Post
+              <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Textarea
+              value={linkedinPost}
+              onChange={(e) => setLinkedinPost(e.target.value)}
+              placeholder="Write your Build in Public LinkedIn post..."
+              rows={3}
+              className="resize-none"
+              disabled={saving}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Twitter className="h-3.5 w-3.5 text-muted-foreground" />
+              Twitter / X Post
+              <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Textarea
+              value={twitterPost}
+              onChange={(e) => setTwitterPost(e.target.value)}
+              placeholder="Write your Build in Public tweet..."
+              rows={2}
+              className="resize-none"
+              disabled={saving}
+            />
+          </div>
+        </div>
+
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => { onOpenChange(false); setReflection(""); }} disabled={saving}>
+          <Button variant="outline" onClick={() => { onOpenChange(false); resetFields(); }} disabled={saving}>
             Cancel
           </Button>
           <Button
