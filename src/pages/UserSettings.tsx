@@ -308,6 +308,40 @@ const UserSettings = () => {
             </div>
           </section>
 
+          {/* Social Links */}
+          <section className="space-y-5 rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-semibold text-foreground">Social Profiles</h3>
+            <p className="text-xs text-muted-foreground">These links will be visible on your public goals.</p>
+
+            <div className="space-y-2">
+              <Label htmlFor="twitterUrl">Twitter / X</Label>
+              <div className="relative">
+                <Twitter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="twitterUrl"
+                  value={twitterUrl}
+                  onChange={(e) => setTwitterUrl(e.target.value)}
+                  placeholder="https://x.com/username"
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="linkedinUrl">LinkedIn</Label>
+              <div className="relative">
+                <Linkedin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="linkedinUrl"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder="https://linkedin.com/in/username"
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </section>
+
           {/* Subscription plan — only when pricing is enabled */}
           {pricingEnabled && (
           <section className="space-y-4 rounded-xl border border-border bg-card p-5">
