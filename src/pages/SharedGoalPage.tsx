@@ -212,7 +212,7 @@ const SharedGoalPage = () => {
                           <p className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
                             <Linkedin className="h-3 w-3" /> LinkedIn Post
                           </p>
-                          <p className="text-xs text-foreground whitespace-pre-wrap">{log.linkedin_post}</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap"><a href={log.linkedin_post} target="_blank">Visit Post</a></p>
                         </div>
                       )}
                       {log.twitter_post && (
@@ -220,7 +220,9 @@ const SharedGoalPage = () => {
                           <p className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
                             <Twitter className="h-3 w-3" /> Twitter / X Post
                           </p>
-                          <p className="text-xs text-foreground whitespace-pre-wrap">{log.twitter_post}</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">
+                            <a href={log.twitter_post} target="_blank">Visit X Post</a>
+                          </p>
                         </div>
                       )}
                     </div>
