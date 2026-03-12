@@ -18,6 +18,8 @@ import {
   Calendar,
   CreditCard,
   Crown,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getTierByKey, PLAN_TIERS } from "@/lib/subscriptionPlans";
