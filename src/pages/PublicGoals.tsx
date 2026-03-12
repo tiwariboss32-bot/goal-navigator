@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Globe, ArrowLeft, Clock, CheckCircle2, Target } from "lucide-react";
+import { Globe, ArrowLeft, Clock, CheckCircle2, Target, Linkedin, Twitter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type PublicGoal = {
@@ -11,8 +11,12 @@ type PublicGoal = {
   timeline: string | null;
   share_slug: string;
   created_at: string;
+  user_id: string;
   task_count: number;
   completed_count: number;
+  user_name: string | null;
+  twitter_url: string | null;
+  linkedin_url: string | null;
 };
 
 const PublicGoals = () => {
@@ -24,7 +28,7 @@ const PublicGoals = () => {
     (async () => {
       const { data: goalsData } = await supabase
         .from("goals")
-        .select("id, title, description, timeline, share_slug, created_at")
+        .select("id, title, description, timeline, share_slug, created_at, user_id")
         .eq("is_public", true)
         .not("share_slug", "is", null)
         .order("created_at", { ascending: false });
@@ -36,10 +40,12 @@ const PublicGoals = () => {
       }
 
       const goalIds = goalsData.map((g) => g.id);
-      const { data: tasks } = await supabase
-        .from("goal_tasks")
-        .select("goal_id, completed")
-        .in("goal_id", goalIds);
+      const userIds = [...new Set(goalsData.map((g) => g.user_id))];
+
+      const [{ data: tasks }, { data: profiles }] = await Promise.all([
+        supabase.from("goal_tasks").select("goal_id, completed").in("goal_id", goalIds),
+        supabase.from("profiles").select("user_id, display_name, twitter_url, linkedin_url").in("user_id", userIds),
+      ]);
 
       const taskMap: Record<string, { total: number; completed: number }> = {};
       (tasks || []).forEach((t) => {
@@ -48,12 +54,24 @@ const PublicGoals = () => {
         if (t.completed) taskMap[t.goal_id].completed++;
       });
 
+      const profileMap: Record<string, { name: string | null; twitter: string | null; linkedin: string | null }> = {};
+      (profiles || []).forEach((p: any) => {
+        profileMap[p.user_id] = {
+          name: p.display_name,
+          twitter: p.twitter_url,
+          linkedin: p.linkedin_url,
+        };
+      });
+
       setGoals(
         goalsData.map((g) => ({
           ...g,
           share_slug: g.share_slug!,
           task_count: taskMap[g.id]?.total || 0,
           completed_count: taskMap[g.id]?.completed || 0,
+          user_name: profileMap[g.user_id]?.name || null,
+          twitter_url: profileMap[g.user_id]?.twitter || null,
+          linkedin_url: profileMap[g.user_id]?.linkedin || null,
         }))
       );
       setLoading(false);
@@ -106,6 +124,37 @@ const PublicGoals = () => {
                   className="group rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-card cursor-pointer"
                   onClick={() => navigate(`/shared/${goal.share_slug}`)}
                 >
+                  {/* User info */}
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground truncate">
+                      {goal.user_name || "Anonymous"}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {goal.linkedin_url && (
+                        <a
+                          href={goal.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Linkedin className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                      {goal.twitter_url && (
+                        <a
+                          href={goal.twitter_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Twitter className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
                   <h3 className="mb-2 text-base font-semibold text-foreground line-clamp-2">
                     {goal.title}
                   </h3>
