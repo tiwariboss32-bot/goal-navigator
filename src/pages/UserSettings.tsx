@@ -52,7 +52,7 @@ const UserSettings = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url")
+        .select("display_name, avatar_url, twitter_url, linkedin_url")
         .eq("user_id", user!.id)
         .single();
 
@@ -62,6 +62,8 @@ const UserSettings = () => {
         setDisplayName(data.display_name || "");
         setAvatarUrl(data.avatar_url);
         setPreviewUrl(data.avatar_url);
+        setTwitterUrl((data as any).twitter_url || "");
+        setLinkedinUrl((data as any).linkedin_url || "");
       }
     } catch (e: any) {
       console.error(e);
