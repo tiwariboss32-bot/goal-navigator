@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Linkedin, Twitter } from "lucide-react";
+import { Loader2, Linkedin, Twitter, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toggleTaskComplete } from "@/lib/goalService";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ interface TaskReflectionDialogProps {
   taskId: string | null;
   taskTitle: string;
   onCompleted: () => void;
+  onGenerateCard?: (reflection: string) => void;
 }
 
 const TaskReflectionDialog = ({
@@ -29,16 +30,19 @@ const TaskReflectionDialog = ({
   taskId,
   taskTitle,
   onCompleted,
+  onGenerateCard,
 }: TaskReflectionDialogProps) => {
   const [reflection, setReflection] = useState("");
   const [linkedinPost, setLinkedinPost] = useState("");
   const [twitterPost, setTwitterPost] = useState("");
   const [saving, setSaving] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
 
   const resetFields = () => {
     setReflection("");
     setLinkedinPost("");
     setTwitterPost("");
+    setJustCompleted(false);
   };
 
   const handleSubmit = async () => {
@@ -59,8 +63,7 @@ const TaskReflectionDialog = ({
 
       await toggleTaskComplete(taskId, true);
       toast.success("Task completed! 🎉");
-      resetFields();
-      onOpenChange(false);
+      setJustCompleted(true);
       onCompleted();
     } catch (e: any) {
       toast.error(e.message);
@@ -68,6 +71,42 @@ const TaskReflectionDialog = ({
       setSaving(false);
     }
   };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    resetFields();
+  };
+
+  const handleGenerateCard = () => {
+    onGenerateCard?.(reflection);
+    handleClose();
+  };
+
+  if (justCompleted) {
+    return (
+      <Dialog open={open} onOpenChange={() => handleClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Task Completed 🎉</DialogTitle>
+            <DialogDescription>
+              Great work completing <span className="font-medium text-foreground">"{taskTitle}"</span>!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            {onGenerateCard && (
+              <Button variant="hero" className="gap-2" onClick={handleGenerateCard}>
+                <Share2 className="h-4 w-4" />
+                Generate Shareable Progress Card
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleClose}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!saving) { onOpenChange(v); resetFields(); } }}>

@@ -26,8 +26,10 @@ import {
   toggleGoalSharing,
   GoalDetail,
 } from "@/lib/goalService";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import TaskReflectionDialog from "@/components/TaskReflectionDialog";
+import ProgressCardDialog, { type ProgressCardData } from "@/components/ProgressCardDialog";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
@@ -42,6 +44,9 @@ const GoalDetailPage = () => {
   const [notes, setNotes] = useState("");
   const [reflectionTaskId, setReflectionTaskId] = useState<string | null>(null);
   const [reflectionTaskTitle, setReflectionTaskTitle] = useState("");
+  const [cardData, setCardData] = useState<ProgressCardData | null>(null);
+  const [showCard, setShowCard] = useState(false);
+  const [userName, setUserName] = useState("");
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -57,26 +62,53 @@ const GoalDetailPage = () => {
 
   useEffect(() => {
     load();
+    // Fetch user name for card
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", user.id)
+          .single();
+        setUserName(profile?.display_name || user.email || "User");
+      }
+    })();
   }, [load]);
+
+  const openProgressCard = (taskId: string, reflectionText?: string) => {
+    if (!goal) return;
+    const task = goal.tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    const completedTasks = goal.tasks.filter((t) => t.completed).length;
+    setCardData({
+      userName,
+      goalTitle: goal.title,
+      taskTitle: task.title,
+      completionNotes: reflectionText || null,
+      completedTasks,
+      totalTasks: goal.tasks.length,
+      completionDate: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    });
+    setShowCard(true);
+  };
 
   const handleToggleTask = async (taskId: string, current: boolean) => {
     if (!goal) return;
     if (!current) {
-      // Opening reflection dialog instead of directly completing
       const task = goal.tasks.find((t) => t.id === taskId);
       setReflectionTaskTitle(task?.title || "");
       setReflectionTaskId(taskId);
       return;
     }
-    // Uncompleting: direct toggle
+    // Uncompleting
     setGoal((prev) =>
       prev
-        ? {
-            ...prev,
-            tasks: prev.tasks.map((t) =>
-              t.id === taskId ? { ...t, completed: false } : t
-            ),
-          }
+        ? { ...prev, tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, completed: false } : t)) }
         : prev
     );
     try {
@@ -91,12 +123,7 @@ const GoalDetailPage = () => {
     if (!goal) return;
     setGoal((prev) =>
       prev
-        ? {
-            ...prev,
-            milestones: prev.milestones.map((m) =>
-              m.id === msId ? { ...m, completed: !current } : m
-            ),
-          }
+        ? { ...prev, milestones: prev.milestones.map((m) => (m.id === msId ? { ...m, completed: !current } : m)) }
         : prev
     );
     try {
@@ -124,9 +151,7 @@ const GoalDetailPage = () => {
     const makePublic = !goal.is_public;
     try {
       const slug = await toggleGoalSharing(goal.id, makePublic);
-      setGoal((prev) =>
-        prev ? { ...prev, is_public: makePublic, share_slug: slug } : prev
-      );
+      setGoal((prev) => (prev ? { ...prev, is_public: makePublic, share_slug: slug } : prev));
       if (makePublic && slug) {
         const url = `${window.location.origin}/shared/${slug}`;
         await navigator.clipboard.writeText(url);
@@ -232,7 +257,6 @@ const GoalDetailPage = () => {
               </span>
             </div>
 
-            {/* Meta */}
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               {goal.timeline && (
                 <span className="flex items-center gap-1.5">
@@ -244,7 +268,6 @@ const GoalDetailPage = () => {
               </span>
             </div>
 
-            {/* Progress bar */}
             <div className="mt-5">
               <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
                 <span>Progress</span>
@@ -273,44 +296,65 @@ const GoalDetailPage = () => {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className={`group flex items-start gap-3 rounded-xl border p-4 transition-all cursor-pointer ${
+                  className={`group rounded-xl border p-4 transition-all ${
                     task.completed
                       ? "border-primary/20 bg-primary/5"
                       : "border-border bg-card hover:border-primary/20"
                   }`}
-                  onClick={() => handleToggleTask(task.id, task.completed)}
                 >
-                  <div className="mt-0.5 flex-shrink-0">
-                    {task.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm font-medium ${
-                        task.completed
-                          ? "text-muted-foreground line-through"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {task.title}
-                    </p>
-                    {task.description && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
-                    )}
-                    <div className="mt-2 flex items-center gap-3">
-                      <span
-                        className={`text-[10px] font-medium uppercase ${priorityColors[task.priority]}`}
-                      >
-                        {task.priority}
-                      </span>
-                      {task.deadline && (
-                        <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
+                  <div
+                    className="flex items-start gap-3 cursor-pointer"
+                    onClick={() => handleToggleTask(task.id, task.completed)}
+                  >
+                    <div className="mt-0.5 flex-shrink-0">
+                      {task.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
                       )}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-medium ${
+                          task.completed
+                            ? "text-muted-foreground line-through"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {task.title}
+                      </p>
+                      {task.description && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
+                      )}
+                      <div className="mt-2 flex items-center gap-3">
+                        <span
+                          className={`text-[10px] font-medium uppercase ${priorityColors[task.priority]}`}
+                        >
+                          {task.priority}
+                        </span>
+                        {task.deadline && (
+                          <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
+                  {/* Generate Progress Card button for completed tasks */}
+                  {task.completed && (
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openProgressCard(task.id);
+                        }}
+                      >
+                        <Share2 className="h-3 w-3" />
+                        Generate Progress Card
+                      </Button>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -436,12 +480,24 @@ const GoalDetailPage = () => {
           </section>
         </motion.div>
       </main>
+
       <TaskReflectionDialog
         open={!!reflectionTaskId}
         onOpenChange={(open) => { if (!open) setReflectionTaskId(null); }}
         taskId={reflectionTaskId}
         taskTitle={reflectionTaskTitle}
         onCompleted={load}
+        onGenerateCard={(reflection) => {
+          if (reflectionTaskId) {
+            openProgressCard(reflectionTaskId, reflection);
+          }
+        }}
+      />
+
+      <ProgressCardDialog
+        open={showCard}
+        onOpenChange={setShowCard}
+        data={cardData}
       />
     </div>
   );
