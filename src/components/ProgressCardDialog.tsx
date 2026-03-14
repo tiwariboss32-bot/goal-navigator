@@ -1,15 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Linkedin, Twitter, Download, Copy, CheckCircle2, Zap } from "lucide-react";
+import { Linkedin, Twitter, Download, Copy, Zap, Trophy } from "lucide-react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProgressCardData {
   userName: string;
@@ -86,7 +86,7 @@ const ProgressCard = ({ data }: { data: ProgressCardData }) => {
         </p>
       </div>
 
-      {/* Main - Task completed */}
+      {/* Main */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16 }}>
         <div
           style={{
@@ -177,10 +177,11 @@ const ProgressCard = ({ data }: { data: ProgressCardData }) => {
 const ProgressCardDialog = ({ open, onOpenChange, data }: ProgressCardDialogProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [generating, setGenerating] = useState(false);
+  const isMobile = useIsMobile();
 
   if (!data) return null;
 
-  const caption = `✅ Just completed: "${data.taskTitle}"\n\n🎯 Goal: ${data.goalTitle}\n📊 Progress: ${data.completedTasks}/${data.totalTasks} tasks done\n\nBuilding in public with @GoalBuilderAI 🚀\nhttps://goalbuilder.online`;
+  const caption = `🏅 Achievement Unlocked\n\nCompleted: "${data.taskTitle}"\nMaking progress toward my goal: ${data.goalTitle} 🚀\n\n📊 Progress: ${data.completedTasks}/${data.totalTasks} tasks done\n\nTracking my journey using GoalBuilderAI.\nhttps://goalbuilder.online`;
 
   const downloadImage = async () => {
     if (!cardRef.current) return;
@@ -206,61 +207,128 @@ const ProgressCardDialog = ({ open, onOpenChange, data }: ProgressCardDialogProp
 
   const copyCaption = async () => {
     await navigator.clipboard.writeText(caption);
-    toast.success("Caption copied!");
+    toast.success("Caption copied to clipboard!");
   };
 
   const shareOnLinkedIn = () => {
-    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://goalbuilder.online")}`;
-    window.open(url, "_blank");
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://goalbuilder.online")}`,
+      "_blank"
+    );
   };
 
   const shareOnTwitter = () => {
-    const text = encodeURIComponent(caption);
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(caption)}`,
+      "_blank"
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[95vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
-            Share Progress Card
+      <DialogContent
+        className={
+          isMobile
+            ? "max-w-[95vw] max-h-[90vh] overflow-hidden p-4"
+            : "max-w-4xl max-h-[90vh] overflow-hidden p-0"
+        }
+      >
+        {/* Header */}
+        <DialogHeader className={isMobile ? "pb-2" : "px-6 pt-6 pb-0"}>
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Trophy className="h-5 w-5 text-primary" />
+            Achievement Badge Generated
           </DialogTitle>
-          <DialogDescription>
-            Share your achievement on social media to build in public!
-          </DialogDescription>
         </DialogHeader>
 
-        {/* Card preview */}
-        <div className="flex justify-center overflow-hidden rounded-xl border border-border bg-muted/30 p-4">
-          <div ref={cardRef} className="shrink-0">
-            <ProgressCard data={data} />
+        <div
+          className={
+            isMobile
+              ? "flex flex-col gap-3"
+              : "grid grid-cols-2 gap-6 px-6 pb-6"
+          }
+        >
+          {/* Left – Badge Preview */}
+          <div className="flex items-center justify-center rounded-xl border border-border bg-muted/30 p-3">
+            <div
+              ref={cardRef}
+              className="shrink-0"
+              style={{
+                transform: isMobile ? "scale(0.42)" : "scale(0.58)",
+                transformOrigin: "top left",
+                width: 600,
+                height: 600,
+                maxHeight: isMobile ? 252 : 348,
+                marginBottom: isMobile ? -348 : -252,
+              }}
+            >
+              <ProgressCard data={data} />
+            </div>
           </div>
-        </div>
 
-        {/* Auto-generated caption */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">Suggested Caption</p>
-          <div className="rounded-lg border border-border bg-card p-3 text-xs text-foreground whitespace-pre-wrap">
-            {caption}
+          {/* Right – Actions Panel */}
+          <div className="flex flex-col justify-between gap-3">
+            {/* Caption */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Suggested Caption
+              </p>
+              <div
+                className={
+                  "rounded-lg border border-border bg-card p-3 text-xs text-foreground whitespace-pre-wrap " +
+                  (isMobile ? "max-h-24 overflow-hidden" : "max-h-36 overflow-hidden")
+                }
+              >
+                {caption}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-1.5 text-xs"
+                onClick={copyCaption}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                Copy Caption
+              </Button>
+            </div>
+
+            {/* Share Actions */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Share
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={shareOnLinkedIn}
+                >
+                  <Linkedin className="h-3.5 w-3.5" />
+                  LinkedIn
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={shareOnTwitter}
+                >
+                  <Twitter className="h-3.5 w-3.5" />
+                  X
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={downloadImage}
+                  disabled={generating}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={shareOnLinkedIn}>
-            <Linkedin className="h-3.5 w-3.5" /> LinkedIn
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={shareOnTwitter}>
-            <Twitter className="h-3.5 w-3.5" /> X / Twitter
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={downloadImage} disabled={generating}>
-            <Download className="h-3.5 w-3.5" /> Download
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={copyCaption}>
-            <Copy className="h-3.5 w-3.5" /> Caption
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
