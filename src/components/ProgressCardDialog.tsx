@@ -226,112 +226,231 @@ const ProgressCardDialog = ({ open, onOpenChange, data }: ProgressCardDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+    <DialogContent
+      className={
+        isMobile
+          ? "max-w-[95vw] max-h-[90vh] overflow-hidden p-4"
+          : "max-w-4xl max-h-[90vh] overflow-hidden p-0"
+      }
+    >
+      {/* Header */}
+      <DialogHeader className={isMobile ? "pb-2" : "px-6 pt-6 pb-0"}>
+        <DialogTitle className="flex items-center gap-2 text-lg">
+          <Trophy className="h-5 w-5 text-primary" />
+          Achievement Badge Generated
+        </DialogTitle>
+      </DialogHeader>
+
+      <div
         className={
           isMobile
-            ? "max-w-[95vw] max-h-[90vh] overflow-hidden p-4"
-            : "max-w-4xl max-h-[90vh] overflow-hidden p-0"
+            ? "flex flex-col gap-3"
+            : "grid grid-cols-2 gap-6 px-6 pb-6"
         }
       >
-        {/* Header */}
-        <DialogHeader className={isMobile ? "pb-2" : "px-6 pt-6 pb-0"}>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Trophy className="h-5 w-5 text-primary" />
-            Achievement Badge Generated
-          </DialogTitle>
-        </DialogHeader>
-
-        <div
-          className={
-            isMobile
-              ? "flex flex-col gap-3"
-              : "grid grid-cols-2 gap-6 px-6 pb-6"
-          }
-        >
-          {/* Left – Badge Preview */}
-          <div className="flex items-center justify-center rounded-xl border border-border bg-muted/30 p-3">
+        {/* Left – Badge Preview */}
+        <div className="flex items-center justify-center rounded-xl border border-border bg-muted/30 p-3 overflow-hidden">
+          <div
+            className="flex items-start justify-center"
+            style={{
+              width: isMobile ? 250 : 350,
+              height: isMobile ? 250 : 350,
+            }}
+          >
             <div
               ref={cardRef}
-              className="shrink-0"
               style={{
-                transform: isMobile ? "scale(0.42)" : "scale(0.58)",
-                transformOrigin: "top left",
+                transform: `scale(${isMobile ? 0.42 : 0.58})`,
+                transformOrigin: "top center",
                 width: 600,
                 height: 600,
-                maxHeight: isMobile ? 252 : 348,
-                marginBottom: isMobile ? -348 : -252,
               }}
             >
               <ProgressCard data={data} />
             </div>
           </div>
+        </div>
 
-          {/* Right – Actions Panel */}
-          <div className="flex flex-col justify-between gap-3">
-            {/* Caption */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Suggested Caption
-              </p>
-              <div
-                className={
-                  "rounded-lg border border-border bg-card p-3 text-xs text-foreground whitespace-pre-wrap " +
-                  (isMobile ? "max-h-24 overflow-hidden" : "max-h-36 overflow-hidden")
-                }
-              >
-                {caption}
-              </div>
+        {/* Right – Actions Panel */}
+        <div className="flex flex-col justify-between gap-3">
+          {/* Caption */}
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Suggested Caption
+            </p>
+
+            <div
+              className={
+                "rounded-lg border border-border bg-card p-3 text-xs text-foreground whitespace-pre-wrap " +
+                (isMobile
+                  ? "max-h-24 overflow-hidden"
+                  : "max-h-36 overflow-hidden")
+              }
+            >
+              {caption}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5 text-xs"
+              onClick={copyCaption}
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy Caption
+            </Button>
+          </div>
+
+          {/* Share Actions */}
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Share
+            </p>
+
+            <div className="grid grid-cols-3 gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full gap-1.5 text-xs"
-                onClick={copyCaption}
+                className="gap-1.5 text-xs"
+                onClick={shareOnLinkedIn}
               >
-                <Copy className="h-3.5 w-3.5" />
-                Copy Caption
+                <Linkedin className="h-3.5 w-3.5" />
+                LinkedIn
               </Button>
-            </div>
 
-            {/* Share Actions */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Share
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-xs"
-                  onClick={shareOnLinkedIn}
-                >
-                  <Linkedin className="h-3.5 w-3.5" />
-                  LinkedIn
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-xs"
-                  onClick={shareOnTwitter}
-                >
-                  <Twitter className="h-3.5 w-3.5" />
-                  X
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-xs"
-                  onClick={downloadImage}
-                  disabled={generating}
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Download
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={shareOnTwitter}
+              >
+                <Twitter className="h-3.5 w-3.5" />
+                X
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={downloadImage}
+                disabled={generating}
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download
+              </Button>
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </DialogContent>
+  </Dialog>
+    // <Dialog open={open} onOpenChange={onOpenChange}>
+    //   <DialogContent
+    //     className={
+    //       isMobile
+    //         ? "max-w-[95vw] max-h-[90vh] overflow-hidden p-4"
+    //         : "max-w-4xl max-h-[90vh] overflow-hidden p-0"
+    //     }
+    //   >
+    //     {/* Header */}
+    //     <DialogHeader className={isMobile ? "pb-2" : "px-6 pt-6 pb-0"}>
+    //       <DialogTitle className="flex items-center gap-2 text-lg">
+    //         <Trophy className="h-5 w-5 text-primary" />
+    //         Achievement Badge Generated
+    //       </DialogTitle>
+    //     </DialogHeader>
+
+    //     <div
+    //       className={
+    //         isMobile
+    //           ? "flex flex-col gap-3"
+    //           : "grid grid-cols-2 gap-6 px-6 pb-6"
+    //       }
+    //     >
+    //       {/* Left – Badge Preview */}
+    //       <div className="flex items-center justify-center rounded-xl border border-border bg-muted/30 p-3">
+    //         <div
+    //           ref={cardRef}
+    //           className="shrink-0"
+    //           style={{
+    //             transform: isMobile ? "scale(0.42)" : "scale(0.58)",
+    //             transformOrigin: "top left",
+    //             width: 600,
+    //             height: 600,
+    //             maxHeight: isMobile ? 252 : 348,
+    //             marginBottom: isMobile ? -348 : -252,
+    //           }}
+    //         >
+    //           <ProgressCard data={data} />
+    //         </div>
+    //       </div>
+
+    //       {/* Right – Actions Panel */}
+    //       <div className="flex flex-col justify-between gap-3">
+    //         {/* Caption */}
+    //         <div className="space-y-1.5">
+    //           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+    //             Suggested Caption
+    //           </p>
+    //           <div
+    //             className={
+    //               "rounded-lg border border-border bg-card p-3 text-xs text-foreground whitespace-pre-wrap " +
+    //               (isMobile ? "max-h-24 overflow-hidden" : "max-h-36 overflow-hidden")
+    //             }
+    //           >
+    //             {caption}
+    //           </div>
+    //           <Button
+    //             variant="outline"
+    //             size="sm"
+    //             className="w-full gap-1.5 text-xs"
+    //             onClick={copyCaption}
+    //           >
+    //             <Copy className="h-3.5 w-3.5" />
+    //             Copy Caption
+    //           </Button>
+    //         </div>
+
+    //         {/* Share Actions */}
+    //         <div className="space-y-1.5">
+    //           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+    //             Share
+    //           </p>
+    //           <div className="grid grid-cols-3 gap-2">
+    //             <Button
+    //               variant="outline"
+    //               size="sm"
+    //               className="gap-1.5 text-xs"
+    //               onClick={shareOnLinkedIn}
+    //             >
+    //               <Linkedin className="h-3.5 w-3.5" />
+    //               LinkedIn
+    //             </Button>
+    //             <Button
+    //               variant="outline"
+    //               size="sm"
+    //               className="gap-1.5 text-xs"
+    //               onClick={shareOnTwitter}
+    //             >
+    //               <Twitter className="h-3.5 w-3.5" />
+    //               X
+    //             </Button>
+    //             <Button
+    //               variant="outline"
+    //               size="sm"
+    //               className="gap-1.5 text-xs"
+    //               onClick={downloadImage}
+    //               disabled={generating}
+    //             >
+    //               <Download className="h-3.5 w-3.5" />
+    //               Download
+    //             </Button>
+    //           </div>
+    //         </div>
+    //       </div>
+    //     </div>
+    //   </DialogContent>
+    // </Dialog>
   );
 };
 
