@@ -49,11 +49,11 @@ const Navbar = () => {
                 >
                   Goals
                 </Link>
-              <Button variant="ghost" size="sm" asChild>
+              {/* <Button variant="ghost" size="sm" asChild>
                 <Link to="/auth">Log in</Link>
-              </Button>
+              </Button> */}
               <Button variant="hero" size="sm" asChild>
-                <Link to="/auth">Start Planning</Link>
+                <Link to="/auth">Log in</Link>
               </Button>
             </>
           )}
