@@ -77,6 +77,50 @@ const GoalDetailPage = () => {
     })();
   }, [load]);
 
+  // Lazy-fetch direct YouTube tutorial links via Tavily for tasks missing one
+  useEffect(() => {
+    if (!goal) return;
+    const missing = goal.tasks.filter((t) => !t.youtube_url);
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      for (const task of missing) {
+        if (cancelled) return;
+        try {
+          const { data, error } = await supabase.functions.invoke(
+            "find-youtube-video",
+            {
+              body: {
+                taskId: task.id,
+                query: `${task.title} ${goal.title}`,
+              },
+            }
+          );
+          if (error || !data?.url) continue;
+          if (cancelled) return;
+          setGoal((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  tasks: prev.tasks.map((t) =>
+                    t.id === task.id ? { ...t, youtube_url: data.url } : t
+                  ),
+                }
+              : prev
+          );
+        } catch {
+          // silent — link will fall back to search
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goal?.id]);
+
   const openProgressCard = (taskId: string, reflectionText?: string) => {
     if (!goal) return;
     const task = goal.tasks.find((t) => t.id === taskId);

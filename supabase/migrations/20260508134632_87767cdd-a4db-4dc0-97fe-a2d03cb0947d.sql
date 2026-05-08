@@ -1,0 +1,1 @@
+INSERT INTO public.app_config (key, value) VALUES ('tavily_api_key', '') ON CONFLICT (key) DO NOTHING;
