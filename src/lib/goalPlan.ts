@@ -7,6 +7,7 @@ export type GoalPlan = {
     description: string;
     deadline: string;
     priority: "high" | "medium" | "low";
+    youtube_url?: string | null;
   }[];
   milestones: {
     title: string;

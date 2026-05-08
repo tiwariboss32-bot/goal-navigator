@@ -39,6 +39,7 @@ export async function saveGoalPlan(plan: GoalPlan, userId: string): Promise<stri
       description: t.description,
       deadline: t.deadline,
       priority: t.priority,
+      youtube_url: t.youtube_url || null,
       sort_order: i,
     }));
 
@@ -140,6 +141,7 @@ export type GoalDetail = {
     priority: string;
     completed: boolean;
     sort_order: number;
+    youtube_url?: string | null;
   }[];
   milestones: {
     id: string;
