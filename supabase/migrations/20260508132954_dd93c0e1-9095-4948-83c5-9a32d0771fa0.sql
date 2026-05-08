@@ -1,0 +1,1 @@
+ALTER TABLE public.goal_tasks ADD COLUMN IF NOT EXISTS youtube_url text;
