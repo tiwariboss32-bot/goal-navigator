@@ -336,17 +336,20 @@ const GoalDetailPage = () => {
                         {task.deadline && (
                           <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
                         )}
-                        {task.youtube_url && (
-                          <a
-                            href={task.youtube_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 hover:underline"
-                          >
-                            <Youtube className="h-3 w-3" /> Watch tutorial
-                          </a>
-                        )}
+                        <a
+                          href={
+                            task.youtube_url ||
+                            `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                              `${task.title} ${goal.title} tutorial`
+                            )}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 hover:underline"
+                        >
+                          <Youtube className="h-3 w-3" /> Watch tutorial
+                        </a>
                       </div>
                     </div>
                   </div>
