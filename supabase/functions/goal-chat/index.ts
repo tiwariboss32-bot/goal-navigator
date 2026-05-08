@@ -26,7 +26,7 @@ WHEN GENERATING A PLAN, you MUST output it in this exact JSON format wrapped in 
   "description": "Brief goal description",
   "timeline": "e.g. 3 months",
   "tasks": [
-    { "title": "Task name", "description": "Details", "deadline": "relative deadline", "priority": "high|medium|low" }
+    { "title": "Task name", "description": "Details", "deadline": "relative deadline", "priority": "high|medium|low", "youtube_url": "https://www.youtube.com/results?search_query=..." }
   ],
   "milestones": [
     { "title": "Milestone name", "target_date": "relative date" }
@@ -39,6 +39,7 @@ IMPORTANT RULES:
 - Be conversational and encouraging
 - Ask only ONE question at a time
 - Generate 5-10 tasks that are specific and actionable
+- For EACH task, include a "youtube_url" field with a relevant YouTube link that helps the user learn or complete that task. Prefer a YouTube search URL using this exact format: "https://www.youtube.com/results?search_query=<URL-ENCODED+KEYWORDS>" with 3-6 focused keywords describing the task topic (e.g. "react hooks tutorial beginner"). Only include a specific video URL ("https://www.youtube.com/watch?v=...") if you are highly confident it exists; otherwise always use the search URL. If the task is not learning-related (e.g. "buy a notebook"), set youtube_url to null.
 - Include 2-4 milestones
 - After generating the plan, ask if they want to adjust anything
 - If they request changes, output an updated <plan> block`;

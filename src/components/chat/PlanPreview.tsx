@@ -1,6 +1,6 @@
 import { GoalPlan } from "@/lib/goalPlan";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Clock, Flag, BookOpen, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock, Flag, BookOpen, AlertTriangle, Youtube } from "lucide-react";
 
 const priorityColors: Record<string, string> = {
   high: "text-destructive",
@@ -59,6 +59,16 @@ const PlanPreview = ({ plan }: { plan: GoalPlan | null }) => {
                     <div>
                       <p className="text-sm font-medium text-foreground">{task.title}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
+                      {task.youtube_url && (
+                        <a
+                          href={task.youtube_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-red-500 hover:underline"
+                        >
+                          <Youtube className="h-3 w-3" /> Watch tutorial
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
