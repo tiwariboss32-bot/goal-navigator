@@ -17,6 +17,7 @@ import {
   Link2,
   Globe,
   Lock,
+  Youtube,
 } from "lucide-react";
 import {
   fetchGoalDetail,
@@ -326,7 +327,7 @@ const GoalDetailPage = () => {
                       {task.description && (
                         <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
                       )}
-                      <div className="mt-2 flex items-center gap-3">
+                      <div className="mt-2 flex items-center gap-3 flex-wrap">
                         <span
                           className={`text-[10px] font-medium uppercase ${priorityColors[task.priority]}`}
                         >
@@ -334,6 +335,17 @@ const GoalDetailPage = () => {
                         </span>
                         {task.deadline && (
                           <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
+                        )}
+                        {task.youtube_url && (
+                          <a
+                            href={task.youtube_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 hover:underline"
+                          >
+                            <Youtube className="h-3 w-3" /> Watch tutorial
+                          </a>
                         )}
                       </div>
                     </div>
