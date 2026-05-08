@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import PricingConfigSection from "@/components/admin/PricingConfigSection";
 import PaymentConfigSection from "@/components/admin/PaymentConfigSection";
+import TavilyConfigSection from "@/components/admin/TavilyConfigSection";
 
 const AVAILABLE_MODELS = [
   { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash Preview", provider: "lovable" },
@@ -60,6 +61,9 @@ const AdminSettings = () => {
   const [paymentProvider, setPaymentProvider] = useState("");
   const [paymentPublishableKey, setPaymentPublishableKey] = useState("");
   const [paymentSecretKey, setPaymentSecretKey] = useState("");
+
+  // Tavily
+  const [tavilyApiKey, setTavilyApiKey] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -104,6 +108,7 @@ const AdminSettings = () => {
       setPaymentProvider(map["payment_provider"] || "");
       setPaymentPublishableKey(map["payment_publishable_key"] || "");
       setPaymentSecretKey(map["payment_secret_key"] || "");
+      setTavilyApiKey(map["tavily_api_key"] || "");
     } catch (e: any) {
       console.error(e);
       toast.error("Failed to load settings");
@@ -125,6 +130,7 @@ const AdminSettings = () => {
         { key: "payment_provider", value: paymentProvider === "none" ? "" : paymentProvider },
         { key: "payment_publishable_key", value: paymentPublishableKey },
         { key: "payment_secret_key", value: paymentSecretKey },
+        { key: "tavily_api_key", value: tavilyApiKey },
       ];
 
       for (const { key, value } of updates) {
@@ -298,6 +304,9 @@ const AdminSettings = () => {
               onSecretKeyChange={setPaymentSecretKey}
             />
           )}
+
+          {/* Tavily */}
+          <TavilyConfigSection apiKey={tavilyApiKey} onApiKeyChange={setTavilyApiKey} />
 
           {/* Info */}
           <section className="rounded-xl border border-border bg-card p-5">
