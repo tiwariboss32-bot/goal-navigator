@@ -142,6 +142,7 @@ export type GoalDetail = {
     completed: boolean;
     sort_order: number;
     youtube_url?: string | null;
+    notes?: string | null;
   }[];
   milestones: {
     id: string;
