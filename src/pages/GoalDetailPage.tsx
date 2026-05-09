@@ -400,9 +400,25 @@ const GoalDetailPage = () => {
                       </div>
                     </div>
                   </div>
-                  {/* Generate Progress Card button for completed tasks */}
-                  {task.completed && (
-                    <div className="mt-3 flex justify-end">
+                  {/* Action row */}
+                  <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotesDraft((d) => ({
+                          ...d,
+                          [task.id]: d[task.id] ?? task.notes ?? "",
+                        }));
+                        setOpenNotes((o) => ({ ...o, [task.id]: !o[task.id] }));
+                      }}
+                    >
+                      <StickyNote className="h-3 w-3" />
+                      {task.notes ? "Edit notes" : "Add notes"}
+                    </Button>
+                    {task.completed && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -415,6 +431,74 @@ const GoalDetailPage = () => {
                         <Share2 className="h-3 w-3" />
                         Generate Progress Card
                       </Button>
+                    )}
+                  </div>
+
+                  {/* Inline notes editor */}
+                  {openNotes[task.id] && (
+                    <div className="mt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+                      <Textarea
+                        value={notesDraft[task.id] ?? task.notes ?? ""}
+                        onChange={(e) =>
+                          setNotesDraft((d) => ({ ...d, [task.id]: e.target.value }))
+                        }
+                        placeholder="Where did you stop? Add reference notes, links, blockers..."
+                        rows={3}
+                        className="resize-none text-sm"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() =>
+                            setOpenNotes((o) => ({ ...o, [task.id]: false }))
+                          }
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="hero"
+                          size="sm"
+                          className="text-xs"
+                          disabled={savingNotes[task.id]}
+                          onClick={async () => {
+                            const value = notesDraft[task.id] ?? "";
+                            setSavingNotes((s) => ({ ...s, [task.id]: true }));
+                            try {
+                              await updateTaskNotes(task.id, value);
+                              setGoal((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      tasks: prev.tasks.map((t) =>
+                                        t.id === task.id ? { ...t, notes: value } : t
+                                      ),
+                                    }
+                                  : prev
+                              );
+                              setOpenNotes((o) => ({ ...o, [task.id]: false }));
+                              toast.success("Notes saved");
+                            } catch (err: any) {
+                              toast.error(err.message);
+                            } finally {
+                              setSavingNotes((s) => ({ ...s, [task.id]: false }));
+                            }
+                          }}
+                        >
+                          Save notes
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes preview when collapsed */}
+                  {!openNotes[task.id] && task.notes && (
+                    <div className="mt-3 rounded-lg border border-border/50 bg-muted/40 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
+                      <div className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
+                        <StickyNote className="h-3 w-3" /> Notes
+                      </div>
+                      {task.notes}
                     </div>
                   )}
                 </motion.div>
