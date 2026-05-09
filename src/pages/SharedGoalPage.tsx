@@ -13,6 +13,8 @@ import {
   Linkedin,
   Twitter,
   MessageSquare,
+  Youtube,
+  StickyNote,
 } from "lucide-react";
 import { fetchPublicGoal, GoalDetail, TaskCompletionLog } from "@/lib/goalService";
 
@@ -185,7 +187,7 @@ const SharedGoalPage = () => {
                       {task.description && (
                         <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
                       )}
-                      <div className="mt-2 flex items-center gap-3">
+                      <div className="mt-2 flex items-center gap-3 flex-wrap">
                         <span
                           className={`text-[10px] font-medium uppercase ${priorityColors[task.priority]}`}
                         >
@@ -194,7 +196,28 @@ const SharedGoalPage = () => {
                         {task.deadline && (
                           <span className="text-[10px] text-muted-foreground">{task.deadline}</span>
                         )}
+                        <a
+                          href={
+                            task.youtube_url ||
+                            `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                              `${task.title} ${goal.title} tutorial`
+                            )}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-red-500 hover:underline"
+                        >
+                          <Youtube className="h-3 w-3" /> Watch tutorial
+                        </a>
                       </div>
+                      {task.notes && (
+                        <div className="mt-2 rounded-lg border border-border/50 bg-muted/40 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
+                          <div className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
+                            <StickyNote className="h-3 w-3" /> Notes
+                          </div>
+                          {task.notes}
+                        </div>
+                      )}
                     </div>
                   </div>
 

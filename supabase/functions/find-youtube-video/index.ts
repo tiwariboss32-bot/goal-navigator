@@ -80,10 +80,10 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${tavilyKey}`,
       },
       body: JSON.stringify({
-        query: `${query} tutorial`,
-        search_depth: "basic",
-        include_domains: ["youtube.com"],
-        max_results: 8,
+        query: `best popular ${query} tutorial youtube`,
+        search_depth: "advanced",
+        include_domains: ["youtube.com", "www.youtube.com"],
+        max_results: 15,
       }),
     });
 
@@ -102,10 +102,12 @@ Deno.serve(async (req) => {
     const results: Array<{ url: string; title?: string; score?: number }> =
       tavilyData?.results || [];
 
-    // Pick first /watch URL
-    const watch = results.find((r) =>
-      /^https?:\/\/(www\.)?youtube\.com\/watch\?v=/i.test(r.url)
-    );
+    // Keep only direct watch URLs and rank by Tavily score (proxy for popularity/relevance)
+    const watchResults = results
+      .filter((r) => /^https?:\/\/(www\.)?youtube\.com\/watch\?v=/i.test(r.url))
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+    const watch = watchResults[0];
 
     const url =
       watch?.url ||

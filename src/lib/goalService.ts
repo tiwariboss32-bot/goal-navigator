@@ -142,6 +142,7 @@ export type GoalDetail = {
     completed: boolean;
     sort_order: number;
     youtube_url?: string | null;
+    notes?: string | null;
   }[];
   milestones: {
     id: string;
@@ -186,6 +187,14 @@ export async function toggleTaskComplete(taskId: string, completed: boolean) {
   const { error } = await supabase
     .from("goal_tasks")
     .update({ completed })
+    .eq("id", taskId);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateTaskNotes(taskId: string, notes: string) {
+  const { error } = await supabase
+    .from("goal_tasks")
+    .update({ notes } as any)
     .eq("id", taskId);
   if (error) throw new Error(error.message);
 }
