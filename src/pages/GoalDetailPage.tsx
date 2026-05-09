@@ -611,19 +611,7 @@ const GoalDetailPage = () => {
             </div>
           </section>
 
-          {/* Notes */}
-          <section>
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              <StickyNote className="h-4 w-4" /> Notes
-            </h2>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add personal notes about this goal..."
-              rows={4}
-              className="resize-none"
-            />
-          </section>
+          {/* Per-task notes are inline on each task above */}
         </motion.div>
       </main>
 
