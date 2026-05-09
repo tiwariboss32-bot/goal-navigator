@@ -43,7 +43,9 @@ const GoalDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [goal, setGoal] = useState<GoalDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notes, setNotes] = useState("");
+  const [openNotes, setOpenNotes] = useState<Record<string, boolean>>({});
+  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
+  const [savingNotes, setSavingNotes] = useState<Record<string, boolean>>({});
   const [reflectionTaskId, setReflectionTaskId] = useState<string | null>(null);
   const [reflectionTaskTitle, setReflectionTaskTitle] = useState("");
   const [cardData, setCardData] = useState<ProgressCardData | null>(null);
