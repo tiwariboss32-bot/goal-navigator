@@ -191,6 +191,14 @@ export async function toggleTaskComplete(taskId: string, completed: boolean) {
   if (error) throw new Error(error.message);
 }
 
+export async function updateTaskNotes(taskId: string, notes: string) {
+  const { error } = await supabase
+    .from("goal_tasks")
+    .update({ notes } as any)
+    .eq("id", taskId);
+  if (error) throw new Error(error.message);
+}
+
 export async function toggleMilestoneComplete(milestoneId: string, completed: boolean) {
   const { error } = await supabase
     .from("goal_milestones")
