@@ -87,6 +87,7 @@ export type Database = {
           description: string | null
           goal_id: string
           id: string
+          notes: string | null
           priority: string
           sort_order: number
           title: string
@@ -101,6 +102,7 @@ export type Database = {
           description?: string | null
           goal_id: string
           id?: string
+          notes?: string | null
           priority?: string
           sort_order?: number
           title: string
@@ -115,6 +117,7 @@ export type Database = {
           description?: string | null
           goal_id?: string
           id?: string
+          notes?: string | null
           priority?: string
           sort_order?: number
           title?: string
