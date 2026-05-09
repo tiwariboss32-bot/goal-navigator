@@ -13,6 +13,8 @@ import {
   Linkedin,
   Twitter,
   MessageSquare,
+  Youtube,
+  StickyNote,
 } from "lucide-react";
 import { fetchPublicGoal, GoalDetail, TaskCompletionLog } from "@/lib/goalService";
 
