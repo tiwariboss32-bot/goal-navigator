@@ -25,6 +25,7 @@ import {
   toggleMilestoneComplete,
   updateGoalStatus,
   toggleGoalSharing,
+  updateTaskNotes,
   GoalDetail,
 } from "@/lib/goalService";
 import { supabase } from "@/integrations/supabase/client";
